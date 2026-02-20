@@ -1283,6 +1283,109 @@ data:
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
+              "description": "Real filesystem usage inside each PVC as reported by kubelet. Unlike Longhorn actual size, this reflects true disk consumption after compaction and deletion.",
+              "fieldConfig": {
+                "defaults": {
+                  "custom": {}
+                },
+                "overrides": []
+              },
+              "fill": 1,
+              "fillGradient": 0,
+              "gridPos": {
+                "h": 10,
+                "w": 15,
+                "x": 8,
+                "y": 57
+              },
+              "hiddenSeries": false,
+              "id": 50,
+              "legend": {
+                "alignAsTable": true,
+                "avg": false,
+                "current": true,
+                "max": false,
+                "min": false,
+                "rightSide": true,
+                "show": true,
+                "total": false,
+                "values": true
+              },
+              "lines": true,
+              "linewidth": 1,
+              "nullPointMode": "null",
+              "percentage": false,
+              "pluginVersion": "7.1.5",
+              "pointradius": 2,
+              "points": false,
+              "renderer": "flot",
+              "seriesOverrides": [],
+              "spaceLength": 10,
+              "stack": false,
+              "steppedLine": false,
+              "targets": [
+                {
+                  "expr": "(kubelet_volume_stats_used_bytes{namespace=~\".+\"} / kubelet_volume_stats_capacity_bytes{namespace=~\".+\"}) * 100",
+                  "interval": "",
+                  "legendFormat": "{{namespace}}/{{persistentvolumeclaim}}",
+                  "refId": "A"
+                }
+              ],
+              "thresholds": [
+                {
+                  "colorMode": "critical",
+                  "fill": true,
+                  "line": true,
+                  "op": "gt",
+                  "value": 90,
+                  "yaxis": "left"
+                }
+              ],
+              "timeFrom": null,
+              "timeRegions": [],
+              "timeShift": null,
+              "title": "Real Filesystem Usage (kubelet)",
+              "tooltip": {
+                "shared": true,
+                "sort": 0,
+                "value_type": "individual"
+              },
+              "type": "graph",
+              "xaxis": {
+                "buckets": null,
+                "mode": "time",
+                "name": null,
+                "show": true,
+                "values": []
+              },
+              "yaxes": [
+                {
+                  "format": "percent",
+                  "label": null,
+                  "logBase": 1,
+                  "max": null,
+                  "min": null,
+                  "show": true
+                },
+                {
+                  "format": "short",
+                  "label": null,
+                  "logBase": 1,
+                  "max": null,
+                  "min": null,
+                  "show": true
+                }
+              ],
+              "yaxis": {
+                "align": false,
+                "alignLevel": null
+              }
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "description": "Attached volumes are volumes that are currently attaching to a node",
               "fieldConfig": {
                 "defaults": {
