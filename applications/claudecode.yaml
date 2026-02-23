@@ -1488,14 +1488,18 @@ data:
       "templating": {
         "list": [
           {
-            "current": {},
+            "current": {
+              "selected": true,
+              "text": "VictoriaMetrics",
+              "value": "VictoriaMetrics"
+            },
             "includeAll": false,
             "label": "Data Source",
             "name": "datasource",
             "options": [],
             "query": "prometheus",
             "refresh": 1,
-            "regex": "",
+            "regex": "/VictoriaMetrics/",
             "type": "datasource"
           }
         ]
