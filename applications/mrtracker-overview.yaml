@@ -1,0 +1,261 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-mrtracker-overview
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Applications"
+data:
+  mrtracker-overview.json: |-
+    {
+      "annotations": {
+        "list": []
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Total Points",
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+          "datasource": { "type": "influxdb", "uid": "influxdb" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": { "type": "influxdb", "uid": "influxdb" },
+              "query": "from(bucket: v.defaultBucket)\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sum()\n  |> yield(name: \"total\")",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Pending Points",
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+          "datasource": { "type": "influxdb", "uid": "influxdb" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "orange", "value": null }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": { "type": "influxdb", "uid": "influxdb" },
+              "query": "from(bucket: v.defaultBucket)\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status == \"Pending\")\n  |> group()\n  |> sum()\n  |> yield(name: \"pending\")",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Earning Velocity (pts/$)",
+          "description": "Average points earned per dollar spent across all confirmed transactions",
+          "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+          "datasource": { "type": "influxdb", "uid": "influxdb" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "decimals": 1,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": { "type": "influxdb", "uid": "influxdb" },
+              "query": "from(bucket: v.defaultBucket)\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\" or r._field == \"amount_cents\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.amount_cents > 0)\n  |> group()\n  |> reduce(\n      fn: (r, accumulator) => ({\n        total_points: accumulator.total_points + r.points,\n        total_cents: accumulator.total_cents + r.amount_cents\n      }),\n      identity: {total_points: 0, total_cents: 0}\n  )\n  |> map(fn: (r) => ({r with _value: float(v: r.total_points) / (float(v: r.total_cents) / 100.0)}))\n  |> yield(name: \"ppd\")",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Portfolio Value",
+          "description": "Based on 2.0 cpp benchmark",
+          "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+          "datasource": { "type": "influxdb", "uid": "influxdb" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null }
+                ]
+              },
+              "unit": "currencyUSD"
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": { "type": "influxdb", "uid": "influxdb" },
+              "query": "from(bucket: v.defaultBucket)\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) * 2.0 / 100.0}))\n  |> yield(name: \"portfolio_value\")",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Points Balance Over Time",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 4 },
+          "datasource": { "type": "influxdb", "uid": "influxdb" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "none",
+                "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+                "insertNulls": false,
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": { "group": "A", "mode": "none" },
+                "thresholdsStyle": { "mode": "off" }
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showValues": "auto" },
+            "tooltip": { "mode": "single", "sort": "none" }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": { "type": "influxdb", "uid": "influxdb" },
+              "query": "from(bucket: v.defaultBucket)\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sort(columns: [\"_time\"])\n  |> cumulativeSum()\n  |> yield(name: \"balance\")",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "title": "Transfer Partner Reference",
+          "gridPos": { "h": 16, "w": 14, "x": 0, "y": 14 },
+          "options": {
+            "mode": "markdown",
+            "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false },
+            "content": "## Airline Partners\n\n| Partner | Program | Ratio | Est. CPP |\n|---------|---------|-------|----------|\n| ANA | Mileage Club | 1:1 | 1.5 - 3.0 |\n| Air Canada | Aeroplan | 1:1 | 1.5 - 2.5 |\n| Air France/KLM | Flying Blue | 1:1 | 1.2 - 1.8 |\n| Avianca | LifeMiles | 1:1 | 1.4 - 2.0 |\n| British Airways | Avios | 1:1 | 1.2 - 1.8 |\n| Cathay Pacific | Asia Miles | 1:1 | 1.2 - 1.8 |\n| Delta | SkyMiles | 1:1 | 1.0 - 1.4 |\n| Emirates | Skywards | 1:1 | 1.0 - 1.5 |\n| Etihad | Guest | 1:1 | 1.2 - 1.8 |\n| Hawaiian | HawaiianMiles | 1:1 | 1.0 - 1.4 |\n| JetBlue | TrueBlue | 5:4 | 1.3 - 1.5 |\n| Qantas | Frequent Flyer | 1:1 | 1.2 - 1.8 |\n| Singapore | KrisFlyer | 1:1 | 1.5 - 2.5 |\n| Virgin Atlantic | Flying Club | 1:1 | 1.5 - 2.5 |\n\n## Hotel Partners\n\n| Partner | Program | Ratio | Est. CPP |\n|---------|---------|-------|----------|\n| Hilton | Honors | 1:2 | 0.5 - 0.8 |\n| Marriott | Bonvoy | 1:1 | 0.7 - 1.0 |\n| Choice | Privileges | 1:1 | 0.5 - 0.7 |\n\n*CPP = cents per point after transfer. Ranges reflect typical redemption values.*\n*Transfers are generally 1:1 unless noted. Availability varies.*\n*Portfolio benchmark: **2.0 cpp** (reflects strategic airline transfer value)*"
+          },
+          "pluginVersion": "11.6.0"
+        },
+        {
+          "type": "text",
+          "title": "Redemption Value Guide",
+          "gridPos": { "h": 16, "w": 10, "x": 14, "y": 14 },
+          "options": {
+            "mode": "markdown",
+            "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false },
+            "content": "## What is CPP?\n\n**CPP (cents per point)** measures how much value you get from each point when redeeming. Higher CPP = better value.\n\n**Example:** Using 50,000 points for a flight worth $1,000 = **2.0 cpp**\n\n---\n\n## The 2.0 CPP Benchmark\n\nThe portfolio value on this dashboard uses **2.0 cpp** as the benchmark rate. This reflects:\n\n- Strategic transfers to airline partners like ANA, Singapore, or Virgin Atlantic\n- Business/First class redemptions where point value is maximized\n- A realistic \"good redemption\" target for most travelers\n\n---\n\n## Maximizing Value\n\n**Best value (1.5 - 3.0+ cpp):**\n- Transfer to ANA for first class awards\n- Transfer to Virgin Atlantic for partner flights\n- Transfer to Air Canada Aeroplan for mixed-cabin bookings\n- Transfer to Singapore KrisFlyer for Star Alliance awards\n\n**Decent value (1.0 - 1.5 cpp):**\n- Transfer to most airline partners for economy flights\n- Transfer to British Airways for short-haul flights\n- Amex Travel portal bookings\n\n**Poor value (< 1.0 cpp):**\n- Statement credits at 0.6 cpp\n- Gift card redemptions\n- Hotel transfers (generally worse ratios)\n- Merchandise redemptions\n\n---\n\n**Rule of thumb:** If you can't get at least 1.5 cpp, it's worth holding your points for a better opportunity."
+          },
+          "pluginVersion": "11.6.0"
+        }
+      ],
+      "schemaVersion": 39,
+      "tags": ["mrtracker"],
+      "templating": {
+        "list": []
+      },
+      "time": {
+        "from": "0",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "MR Tracker - Points Overview",
+      "uid": "mrtracker-overview",
+      "version": 1,
+      "weekStart": ""
+    }
