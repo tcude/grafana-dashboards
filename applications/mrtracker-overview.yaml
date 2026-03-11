@@ -52,7 +52,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: v.defaultBucket)\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sum()\n  |> yield(name: \"total\")",
+              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sum()\n  |> yield(name: \"total\")",
               "refId": "A"
             }
           ]
@@ -90,7 +90,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: v.defaultBucket)\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status == \"Pending\")\n  |> group()\n  |> sum()\n  |> yield(name: \"pending\")",
+              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status == \"Pending\")\n  |> group()\n  |> sum()\n  |> yield(name: \"pending\")",
               "refId": "A"
             }
           ]
@@ -130,7 +130,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: v.defaultBucket)\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\" or r._field == \"amount_cents\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.amount_cents > 0)\n  |> group()\n  |> reduce(\n      fn: (r, accumulator) => ({\n        total_points: accumulator.total_points + r.points,\n        total_cents: accumulator.total_cents + r.amount_cents\n      }),\n      identity: {total_points: 0, total_cents: 0}\n  )\n  |> map(fn: (r) => ({r with _value: float(v: r.total_points) / (float(v: r.total_cents) / 100.0)}))\n  |> yield(name: \"ppd\")",
+              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\" or r._field == \"amount_cents\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.amount_cents > 0)\n  |> group()\n  |> reduce(\n      fn: (r, accumulator) => ({\n        total_points: accumulator.total_points + r.points,\n        total_cents: accumulator.total_cents + r.amount_cents\n      }),\n      identity: {total_points: 0, total_cents: 0}\n  )\n  |> map(fn: (r) => ({r with _value: float(v: r.total_points) / (float(v: r.total_cents) / 100.0)}))\n  |> yield(name: \"ppd\")",
               "refId": "A"
             }
           ]
@@ -169,7 +169,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: v.defaultBucket)\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) * 2.0 / 100.0}))\n  |> yield(name: \"portfolio_value\")",
+              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) * 2.0 / 100.0}))\n  |> yield(name: \"portfolio_value\")",
               "refId": "A"
             }
           ]
@@ -215,7 +215,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: v.defaultBucket)\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sort(columns: [\"_time\"])\n  |> cumulativeSum()\n  |> yield(name: \"balance\")",
+              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sort(columns: [\"_time\"])\n  |> cumulativeSum()\n  |> yield(name: \"balance\")",
               "refId": "A"
             }
           ]
