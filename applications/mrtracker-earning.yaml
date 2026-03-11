@@ -53,7 +53,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> last()\n  |> yield(name: \"monthly_points\")",
+              "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> last()\n  |> yield(name: \"monthly_points\")",
               "refId": "A"
             }
           ]
@@ -92,7 +92,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"amount_cents\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 100.0}))\n  |> yield(name: \"monthly_spend\")",
+              "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"amount_cents\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 100.0}))\n  |> yield(name: \"monthly_spend\")",
               "refId": "A"
             }
           ]
@@ -132,7 +132,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\" or r._field == \"amount_cents\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.amount_cents > 0)\n  |> group()\n  |> reduce(\n      fn: (r, accumulator) => ({\n        total_points: accumulator.total_points + r.points,\n        total_cents: accumulator.total_cents + r.amount_cents\n      }),\n      identity: {total_points: 0, total_cents: 0}\n  )\n  |> map(fn: (r) => ({r with _value: float(v: r.total_points) / (float(v: r.total_cents) / 100.0)}))\n  |> yield(name: \"monthly_ppd\")",
+              "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\" or r._field == \"amount_cents\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.amount_cents > 0)\n  |> group()\n  |> reduce(\n      fn: (r, accumulator) => ({\n        total_points: accumulator.total_points + r.points,\n        total_cents: accumulator.total_cents + r.amount_cents\n      }),\n      identity: {total_points: 0, total_cents: 0}\n  )\n  |> map(fn: (r) => ({r with _value: float(v: r.total_points) / (float(v: r.total_cents) / 100.0)}))\n  |> yield(name: \"monthly_ppd\")",
               "refId": "A"
             }
           ]
@@ -178,7 +178,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> yield(name: \"monthly_points\")",
+              "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> yield(name: \"monthly_points\")",
               "refId": "A"
             }
           ]
@@ -226,7 +226,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "points = from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> set(key: \"_field\", value: \"points\")\n\ncents = from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"amount_cents\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> set(key: \"_field\", value: \"amount_cents\")\n\nunion(tables: [points, cents])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.amount_cents > 0)\n  |> map(fn: (r) => ({r with _value: float(v: r.points) / (float(v: r.amount_cents) / 100.0)}))\n  |> yield(name: \"monthly_ppd\")",
+              "query": "points = from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> set(key: \"_field\", value: \"points\")\n\ncents = from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"amount_cents\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> set(key: \"_field\", value: \"amount_cents\")\n\nunion(tables: [points, cents])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.amount_cents > 0)\n  |> map(fn: (r) => ({r with _value: float(v: r.points) / (float(v: r.amount_cents) / 100.0)}))\n  |> yield(name: \"monthly_ppd\")",
               "refId": "A"
             }
           ]
@@ -267,7 +267,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\" or r._field == \"multiplier\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group(columns: [\"multiplier\"])\n  |> sum(column: \"points\")\n  |> group()\n  |> rename(columns: {\"multiplier\": \"_field\", \"points\": \"_value\"})\n  |> yield(name: \"points_by_multiplier\")",
+              "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\" or r._field == \"multiplier\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group(columns: [\"multiplier\"])\n  |> sum(column: \"points\")\n  |> group()\n  |> rename(columns: {\"multiplier\": \"_field\", \"points\": \"_value\"})\n  |> yield(name: \"points_by_multiplier\")",
               "refId": "A"
             }
           ]
@@ -308,7 +308,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"amount_cents\" or r._field == \"multiplier\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group(columns: [\"multiplier\"])\n  |> sum(column: \"amount_cents\")\n  |> group()\n  |> map(fn: (r) => ({r with amount_dollars: float(v: r.amount_cents) / 100.0}))\n  |> rename(columns: {\"multiplier\": \"_field\", \"amount_dollars\": \"_value\"})\n  |> yield(name: \"spend_by_multiplier\")",
+              "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"amount_cents\" or r._field == \"multiplier\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group(columns: [\"multiplier\"])\n  |> sum(column: \"amount_cents\")\n  |> group()\n  |> map(fn: (r) => ({r with amount_dollars: float(v: r.amount_cents) / 100.0}))\n  |> rename(columns: {\"multiplier\": \"_field\", \"amount_dollars\": \"_value\"})\n  |> yield(name: \"spend_by_multiplier\")",
               "refId": "A"
             }
           ]

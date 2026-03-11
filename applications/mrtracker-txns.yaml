@@ -52,7 +52,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> group()\n  |> count()\n  |> yield(name: \"total_count\")",
+              "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> group()\n  |> count()\n  |> yield(name: \"total_count\")",
               "refId": "A"
             }
           ]
@@ -90,7 +90,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"amount_cents\")\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 100.0}))\n  |> yield(name: \"total_spend\")",
+              "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"amount_cents\")\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 100.0}))\n  |> yield(name: \"total_spend\")",
               "refId": "A"
             }
           ]
@@ -128,7 +128,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sum()\n  |> yield(name: \"total_points\")",
+              "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sum()\n  |> yield(name: \"total_points\")",
               "refId": "A"
             }
           ]
@@ -167,7 +167,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> mean()\n  |> yield(name: \"avg_points\")",
+              "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> mean()\n  |> yield(name: \"avg_points\")",
               "refId": "A"
             }
           ]
@@ -252,7 +252,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "influxdb", "uid": "influxdb" },
-              "query": "from(bucket: \\\"mr-tracker\\\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with amount_dollars: float(v: r.amount_cents) / 100.0}))\n  |> keep(columns: [\"_time\", \"card_type\", \"cardholder\", \"description\", \"multiplier\", \"amount_dollars\", \"points\", \"status\"])\n  |> sort(columns: [\"_time\"], desc: true)\n  |> yield(name: \"transactions\")",
+              "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with amount_dollars: float(v: r.amount_cents) / 100.0}))\n  |> keep(columns: [\"_time\", \"card_type\", \"cardholder\", \"description\", \"multiplier\", \"amount_dollars\", \"points\", \"status\"])\n  |> sort(columns: [\"_time\"], desc: true)\n  |> yield(name: \"transactions\")",
               "refId": "A"
             }
           ]
