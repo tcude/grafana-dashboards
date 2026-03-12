@@ -1,0 +1,414 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-mrtracker
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Applications"
+data:
+  mrtracker.json: |-
+    {
+        "annotations": {
+            "list": []
+        },
+        "editable": true,
+        "fiscalYearStartMonth": 0,
+        "graphTooltip": 1,
+        "id": null,
+        "links": [],
+        "panels": [
+            {
+                "collapsed": false,
+                "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+                "id": 1,
+                "panels": [],
+                "title": "Overview",
+                "type": "row"
+            },
+            {
+                "type": "stat",
+                "title": "Total Points",
+                "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+                "id": 10,
+                "datasource": { "type": "influxdb", "uid": "influxdb" },
+                "fieldConfig": {
+                    "defaults": {
+                        "color": { "mode": "thresholds" },
+                        "mappings": [],
+                        "thresholds": {
+                            "mode": "absolute",
+                            "steps": [
+                                { "color": "green", "value": null }
+                            ]
+                        },
+                        "unit": "short"
+                    },
+                    "overrides": [
+                        {
+                            "matcher": { "id": "byName", "options": "_value" },
+                            "properties": [
+                                { "id": "displayName", "value": "Points" }
+                            ]
+                        }
+                    ]
+                },
+                "options": {
+                    "colorMode": "value",
+                    "graphMode": "area",
+                    "justifyMode": "center",
+                    "orientation": "auto",
+                    "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+                    "showPercentChange": false,
+                    "textMode": "auto",
+                    "wideLayout": true
+                },
+                "pluginVersion": "11.6.0",
+                "targets": [
+                    {
+                        "datasource": { "type": "influxdb", "uid": "influxdb" },
+                        "query": "from(bucket: \"mr-tracker\")\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sum()\n  |> yield(name: \"total\")",
+                        "refId": "A"
+                    }
+                ]
+            },
+            {
+                "type": "stat",
+                "title": "Pending Points",
+                "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+                "id": 11,
+                "datasource": { "type": "influxdb", "uid": "influxdb" },
+                "fieldConfig": {
+                    "defaults": {
+                        "color": { "mode": "thresholds" },
+                        "mappings": [],
+                        "thresholds": {
+                            "mode": "absolute",
+                            "steps": [
+                                { "color": "orange", "value": null }
+                            ]
+                        },
+                        "unit": "short"
+                    },
+                    "overrides": [
+                        {
+                            "matcher": { "id": "byName", "options": "_value" },
+                            "properties": [
+                                { "id": "displayName", "value": "Points" }
+                            ]
+                        }
+                    ]
+                },
+                "options": {
+                    "colorMode": "value",
+                    "graphMode": "area",
+                    "justifyMode": "center",
+                    "orientation": "auto",
+                    "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+                    "showPercentChange": false,
+                    "textMode": "auto",
+                    "wideLayout": true
+                },
+                "pluginVersion": "11.6.0",
+                "targets": [
+                    {
+                        "datasource": { "type": "influxdb", "uid": "influxdb" },
+                        "query": "from(bucket: \"mr-tracker\")\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status == \"Pending\")\n  |> group()\n  |> sum()\n  |> yield(name: \"pending\")",
+                        "refId": "A"
+                    }
+                ]
+            },
+            {
+                "type": "stat",
+                "title": "Earning Velocity",
+                "description": "Average points earned per dollar spent",
+                "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+                "id": 12,
+                "datasource": { "type": "influxdb", "uid": "influxdb" },
+                "fieldConfig": {
+                    "defaults": {
+                        "color": { "mode": "thresholds" },
+                        "decimals": 1,
+                        "mappings": [],
+                        "thresholds": {
+                            "mode": "absolute",
+                            "steps": [
+                                { "color": "green", "value": null }
+                            ]
+                        },
+                        "unit": "short"
+                    },
+                    "overrides": [
+                        {
+                            "matcher": { "id": "byName", "options": "_value" },
+                            "properties": [
+                                { "id": "displayName", "value": "pts/$" }
+                            ]
+                        }
+                    ]
+                },
+                "options": {
+                    "colorMode": "value",
+                    "graphMode": "area",
+                    "justifyMode": "center",
+                    "orientation": "auto",
+                    "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+                    "showPercentChange": false,
+                    "textMode": "auto",
+                    "wideLayout": true
+                },
+                "pluginVersion": "11.6.0",
+                "targets": [
+                    {
+                        "datasource": { "type": "influxdb", "uid": "influxdb" },
+                        "query": "from(bucket: \"mr-tracker\")\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\" or r._field == \"amount_cents\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.amount_cents > 0)\n  |> group()\n  |> reduce(\n      fn: (r, accumulator) => ({\n        total_points: accumulator.total_points + r.points,\n        total_cents: accumulator.total_cents + r.amount_cents\n      }),\n      identity: {total_points: 0, total_cents: 0}\n  )\n  |> map(fn: (r) => ({r with _value: float(v: r.total_points) / (float(v: r.total_cents) / 100.0)}))\n  |> yield(name: \"velocity\")",
+                        "refId": "A"
+                    }
+                ]
+            },
+            {
+                "type": "stat",
+                "title": "Portfolio Value",
+                "description": "Based on 2.0 cpp benchmark",
+                "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+                "id": 13,
+                "datasource": { "type": "influxdb", "uid": "influxdb" },
+                "fieldConfig": {
+                    "defaults": {
+                        "color": { "mode": "thresholds" },
+                        "mappings": [],
+                        "thresholds": {
+                            "mode": "absolute",
+                            "steps": [
+                                { "color": "green", "value": null }
+                            ]
+                        },
+                        "unit": "currencyUSD"
+                    },
+                    "overrides": [
+                        {
+                            "matcher": { "id": "byName", "options": "_value" },
+                            "properties": [
+                                { "id": "displayName", "value": "Value" }
+                            ]
+                        }
+                    ]
+                },
+                "options": {
+                    "colorMode": "value",
+                    "graphMode": "area",
+                    "justifyMode": "center",
+                    "orientation": "auto",
+                    "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+                    "showPercentChange": false,
+                    "textMode": "auto",
+                    "wideLayout": true
+                },
+                "pluginVersion": "11.6.0",
+                "targets": [
+                    {
+                        "datasource": { "type": "influxdb", "uid": "influxdb" },
+                        "query": "from(bucket: \"mr-tracker\")\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) * 2.0 / 100.0}))\n  |> yield(name: \"portfolio_value\")",
+                        "refId": "A"
+                    }
+                ]
+            },
+            {
+                "type": "stat",
+                "title": "Monthly Points",
+                "description": "Most recent complete month",
+                "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+                "id": 14,
+                "datasource": { "type": "influxdb", "uid": "influxdb" },
+                "fieldConfig": {
+                    "defaults": {
+                        "color": { "mode": "thresholds" },
+                        "mappings": [],
+                        "thresholds": {
+                            "mode": "absolute",
+                            "steps": [
+                                { "color": "green", "value": null }
+                            ]
+                        },
+                        "unit": "short"
+                    },
+                    "overrides": [
+                        {
+                            "matcher": { "id": "byName", "options": "_value" },
+                            "properties": [
+                                { "id": "displayName", "value": "Points" }
+                            ]
+                        }
+                    ]
+                },
+                "options": {
+                    "colorMode": "value",
+                    "graphMode": "area",
+                    "justifyMode": "center",
+                    "orientation": "auto",
+                    "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+                    "showPercentChange": false,
+                    "textMode": "auto",
+                    "wideLayout": true
+                },
+                "pluginVersion": "11.6.0",
+                "targets": [
+                    {
+                        "datasource": { "type": "influxdb", "uid": "influxdb" },
+                        "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> last()\n  |> yield(name: \"monthly_points\")",
+                        "refId": "A"
+                    }
+                ]
+            },
+            {
+                "type": "stat",
+                "title": "Monthly Spend",
+                "description": "Most recent complete month",
+                "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+                "id": 15,
+                "datasource": { "type": "influxdb", "uid": "influxdb" },
+                "fieldConfig": {
+                    "defaults": {
+                        "color": { "mode": "thresholds" },
+                        "mappings": [],
+                        "thresholds": {
+                            "mode": "absolute",
+                            "steps": [
+                                { "color": "blue", "value": null }
+                            ]
+                        },
+                        "unit": "currencyUSD"
+                    },
+                    "overrides": [
+                        {
+                            "matcher": { "id": "byName", "options": "_value" },
+                            "properties": [
+                                { "id": "displayName", "value": "Spend" }
+                            ]
+                        }
+                    ]
+                },
+                "options": {
+                    "colorMode": "value",
+                    "graphMode": "area",
+                    "justifyMode": "center",
+                    "orientation": "auto",
+                    "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+                    "showPercentChange": false,
+                    "textMode": "auto",
+                    "wideLayout": true
+                },
+                "pluginVersion": "11.6.0",
+                "targets": [
+                    {
+                        "datasource": { "type": "influxdb", "uid": "influxdb" },
+                        "query": "from(bucket: \"mr-tracker\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"amount_cents\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\n  |> last()\n  |> map(fn: (r) => ({r with _value: float(v: r._value) / 100.0}))\n  |> yield(name: \"monthly_spend\")",
+                        "refId": "A"
+                    }
+                ]
+            },
+            {
+                "collapsed": false,
+                "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+                "id": 2,
+                "panels": [],
+                "title": "Balance",
+                "type": "row"
+            },
+            {
+                "type": "timeseries",
+                "title": "Points Balance Over Time",
+                "gridPos": { "h": 10, "w": 24, "x": 0, "y": 6 },
+                "id": 20,
+                "datasource": { "type": "influxdb", "uid": "influxdb" },
+                "fieldConfig": {
+                    "defaults": {
+                        "color": { "mode": "palette-classic" },
+                        "custom": {
+                            "axisBorderShow": false,
+                            "axisCenteredZero": false,
+                            "axisColorMode": "text",
+                            "axisLabel": "",
+                            "axisPlacement": "auto",
+                            "barAlignment": 0,
+                            "drawStyle": "line",
+                            "fillOpacity": 20,
+                            "gradientMode": "none",
+                            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+                            "insertNulls": false,
+                            "lineInterpolation": "smooth",
+                            "lineWidth": 2,
+                            "pointSize": 5,
+                            "scaleDistribution": { "type": "linear" },
+                            "showPoints": "auto",
+                            "spanNulls": false,
+                            "stacking": { "group": "A", "mode": "none" },
+                            "thresholdsStyle": { "mode": "off" }
+                        },
+                        "unit": "short"
+                    },
+                    "overrides": []
+                },
+                "options": {
+                    "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showValues": "auto" },
+                    "tooltip": { "mode": "single", "sort": "none" }
+                },
+                "pluginVersion": "11.6.0",
+                "targets": [
+                    {
+                        "datasource": { "type": "influxdb", "uid": "influxdb" },
+                        "query": "from(bucket: \"mr-tracker\")\n  |> range(start: 0)\n  |> filter(fn: (r) => r._measurement == \"mr_transactions\")\n  |> filter(fn: (r) => r._field == \"points\")\n  |> filter(fn: (r) => r.status != \"Pending\")\n  |> group()\n  |> sort(columns: [\"_time\"])\n  |> cumulativeSum()\n  |> set(key: \"_field\", value: \"Total Balance\")\n  |> yield(name: \"balance\")",
+                        "refId": "A"
+                    }
+                ]
+            },
+            {
+                "collapsed": false,
+                "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
+                "id": 3,
+                "panels": [],
+                "title": "Earnings",
+                "type": "row"
+            },
+            {
+                "collapsed": false,
+                "gridPos": { "h": 1, "w": 24, "x": 0, "y": 37 },
+                "id": 4,
+                "panels": [],
+                "title": "Spending",
+                "type": "row"
+            },
+            {
+                "collapsed": false,
+                "gridPos": { "h": 1, "w": 24, "x": 0, "y": 48 },
+                "id": 5,
+                "panels": [],
+                "title": "Forecast",
+                "type": "row"
+            },
+            {
+                "collapsed": false,
+                "gridPos": { "h": 1, "w": 24, "x": 0, "y": 49 },
+                "id": 6,
+                "panels": [],
+                "title": "Transactions",
+                "type": "row"
+            }
+        ],
+        "schemaVersion": 39,
+        "tags": ["mrtracker"],
+        "templating": {
+            "list": []
+        },
+        "time": {
+            "from": "now-90d",
+            "to": "now"
+        },
+        "timepicker": {},
+        "timezone": "browser",
+        "title": "Amex Membership Rewards",
+        "uid": "mrtracker",
+        "version": 1,
+        "weekStart": ""
+    }
