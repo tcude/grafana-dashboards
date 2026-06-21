@@ -465,7 +465,7 @@ data:
                   "viz": false
                 },
                 "insertNulls": false,
-                "lineInterpolation": "smooth",
+                "lineInterpolation": "stepAfter",
                 "lineWidth": 2,
                 "pointSize": 5,
                 "scaleDistribution": {
@@ -518,7 +518,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT g.bucket AS \"time\", count(s.id) AS \"Concurrent streams\"\nFROM generate_series($__timeFrom()::timestamptz, $__timeTo()::timestamptz, interval '5 minutes') AS g(bucket)\nLEFT JOIN sessions s\n  ON s.started_at <= g.bucket\n AND coalesce(s.stopped_at, now()) >= g.bucket\n AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\nGROUP BY g.bucket\nORDER BY g.bucket",
+              "rawSql": "WITH ev AS (\n  SELECT s.started_at AS t, 1 AS d FROM sessions s\n   WHERE s.started_at <= $__timeTo() AND coalesce(s.stopped_at, now()) >= $__timeFrom() AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n  UNION ALL\n  SELECT coalesce(s.stopped_at, now()) AS t, -1 AS d FROM sessions s\n   WHERE s.started_at <= $__timeTo() AND coalesce(s.stopped_at, now()) >= $__timeFrom() AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n),\nrun AS (SELECT t, sum(d) OVER (ORDER BY t, d DESC) AS concurrent FROM ev)\nSELECT t AS \"time\", concurrent AS \"Concurrent streams\"\nFROM run WHERE t BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY t",
               "format": "time_series",
               "editorMode": "code",
               "refId": "A"
