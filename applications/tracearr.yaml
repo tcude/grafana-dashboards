@@ -44,7 +44,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -86,7 +86,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT count(*) AS \"Active\" FROM sessions s WHERE stopped_at IS NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
@@ -108,7 +108,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -150,7 +150,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT count(*) AS \"Plays\" FROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
@@ -172,7 +172,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -214,7 +214,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT count(DISTINCT server_user_id) AS \"Viewers\" FROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
@@ -236,7 +236,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -279,7 +279,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT round(sum(duration_ms)/3600000.0, 1) AS \"Hours\" FROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
@@ -301,7 +301,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -344,7 +344,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT round(100.0 * avg((is_transcode)::int), 1) AS \"Transcode\" FROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
@@ -366,7 +366,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -408,7 +408,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT round(avg(bitrate)) AS \"Bitrate\" FROM sessions s WHERE $__timeFilter(started_at) AND bitrate > 0 AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
@@ -443,7 +443,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -515,7 +515,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT g.bucket AS \"time\", count(s.id) AS \"Concurrent streams\"\nFROM generate_series($__timeFrom()::timestamptz, $__timeTo()::timestamptz, interval '5 minutes') AS g(bucket)\nLEFT JOIN sessions s\n  ON s.started_at <= g.bucket\n AND coalesce(s.stopped_at, now()) >= g.bucket\n AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\nGROUP BY g.bucket\nORDER BY g.bucket",
@@ -537,7 +537,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -609,7 +609,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT $__timeGroup(started_at, '1d') AS \"time\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 1",
@@ -644,7 +644,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -689,7 +689,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT grandparent_title AS \"Series\", count(*) AS \"Plays\",\n       round(sum(duration_ms)/3600000.0, 1) AS \"Hours\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s\nWHERE $__timeFilter(started_at) AND media_type = 'episode' AND grandparent_title IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\nGROUP BY 1 ORDER BY 2 DESC LIMIT 25",
@@ -711,7 +711,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -756,7 +756,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT media_title AS \"Movie\", count(*) AS \"Plays\",\n       round(sum(duration_ms)/3600000.0, 1) AS \"Hours\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s\nWHERE $__timeFilter(started_at) AND media_type = 'movie' AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\nGROUP BY 1 ORDER BY 2 DESC LIMIT 25",
@@ -778,7 +778,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -825,7 +825,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT media_type AS \"Type\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\nGROUP BY 1 ORDER BY 2 DESC",
@@ -860,7 +860,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -934,7 +934,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT su.username AS \"User\", count(s.id) AS \"Plays\",\n       round(sum(s.duration_ms)/3600000.0, 1) AS \"Hours\",\n       max(s.started_at) AS \"Last seen\"\nFROM sessions s JOIN server_users su ON su.id = s.server_user_id\nWHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY su.username ORDER BY 3 DESC NULLS LAST LIMIT 50",
@@ -956,7 +956,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1024,7 +1024,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT su.username AS \"User\", round(sum(s.duration_ms)/3600000.0, 1) AS \"Hours\"\nFROM sessions s JOIN server_users su ON su.id = s.server_user_id\nWHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY su.username ORDER BY 2 DESC NULLS LAST LIMIT 15",
@@ -1059,7 +1059,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1106,7 +1106,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT CASE WHEN is_transcode THEN 'Transcode' ELSE 'Direct play' END AS \"Mode\",\n       count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1",
@@ -1128,7 +1128,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1200,7 +1200,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT $__timeGroup(started_at, $__interval) AS \"time\",\n       avg(bitrate) FILTER (WHERE bitrate > 0) AS \"Avg bitrate\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 1",
@@ -1235,7 +1235,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1282,7 +1282,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT coalesce(device, 'unknown') AS \"Device\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 2 DESC",
@@ -1304,7 +1304,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1351,7 +1351,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT coalesce(platform, 'unknown') AS \"Platform\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 2 DESC",
@@ -1373,7 +1373,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1418,7 +1418,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT coalesce(player_name, product, 'unknown') AS \"Player\", count(*) AS \"Plays\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 2 DESC LIMIT 25",
@@ -1453,7 +1453,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1541,7 +1541,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT geo_lat AS \"latitude\", geo_lon AS \"longitude\", geo_city AS \"city\", count(*) AS \"plays\"\nFROM sessions s\nWHERE $__timeFilter(started_at) AND geo_lat IS NOT NULL AND geo_lon IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY geo_lat, geo_lon, geo_city",
@@ -1563,7 +1563,7 @@ data:
           },
           "datasource": {
             "type": "postgres",
-            "uid": "tracearr-timescale"
+            "uid": "${ds}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1608,7 +1608,7 @@ data:
             {
               "datasource": {
                 "type": "postgres",
-                "uid": "tracearr-timescale"
+                "uid": "${ds}"
               },
               "rawQuery": true,
               "rawSql": "SELECT geo_country AS \"Country\", geo_city AS \"City\", count(*) AS \"Plays\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s\nWHERE $__timeFilter(started_at) AND geo_country IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1, 2 ORDER BY 3 DESC LIMIT 50",
@@ -1628,13 +1628,26 @@ data:
       "templating": {
         "list": [
           {
+            "current": {},
+            "hide": 0,
+            "includeAll": false,
+            "label": "Datasource",
+            "multi": false,
+            "name": "ds",
+            "options": [],
+            "query": "grafana-postgresql-datasource",
+            "refresh": 1,
+            "regex": "",
+            "type": "datasource"
+          },
+          {
             "current": {
               "text": "All",
               "value": "All"
             },
             "datasource": {
               "type": "postgres",
-              "uid": "tracearr-timescale"
+              "uid": "${ds}"
             },
             "definition": "SELECT name FROM servers ORDER BY name",
             "includeAll": true,
@@ -1657,7 +1670,7 @@ data:
             },
             "datasource": {
               "type": "postgres",
-              "uid": "tracearr-timescale"
+              "uid": "${ds}"
             },
             "definition": "SELECT DISTINCT media_type FROM sessions WHERE media_type IS NOT NULL ORDER BY 1",
             "includeAll": true,
