@@ -1,0 +1,1688 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-tracearr
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Applications"
+data:
+  tracearr.json: |
+    {
+      "annotations": {
+        "list": []
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 100,
+          "panels": [],
+          "title": "Overview",
+          "type": "row"
+        },
+        {
+          "type": "stat",
+          "title": "Active Streams",
+          "id": 1,
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 0,
+            "y": 1
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT count(*) AS \"Active\" FROM sessions s WHERE stopped_at IS NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Plays",
+          "id": 2,
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 4,
+            "y": 1
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT count(*) AS \"Plays\" FROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Unique Viewers",
+          "id": 3,
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 8,
+            "y": 1
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT count(DISTINCT server_user_id) AS \"Viewers\" FROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Watch Hours",
+          "id": 4,
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 12,
+            "y": 1
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "h",
+              "decimals": 1
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT round(sum(duration_ms)/3600000.0, 1) AS \"Hours\" FROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Transcode %",
+          "id": 5,
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 16,
+            "y": 1
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "percent",
+              "decimals": 1
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT round(100.0 * avg((is_transcode)::int), 1) AS \"Transcode\" FROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Avg Bitrate",
+          "id": 6,
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 20,
+            "y": 1
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "Kbits"
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT round(avg(bitrate)) AS \"Bitrate\" FROM sessions s WHERE $__timeFilter(started_at) AND bitrate > 0 AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 5
+          },
+          "id": 101,
+          "panels": [],
+          "title": "Streams Over Time",
+          "type": "row"
+        },
+        {
+          "type": "timeseries",
+          "title": "Concurrent Streams",
+          "id": 10,
+          "gridPos": {
+            "h": 8,
+            "w": 16,
+            "x": 0,
+            "y": 6
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "drawStyle": "line",
+                "fillOpacity": 25,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "max"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT g.bucket AS \"time\", count(s.id) AS \"Concurrent streams\"\nFROM generate_series($__timeFrom()::timestamptz, $__timeTo()::timestamptz, interval '5 minutes') AS g(bucket)\nLEFT JOIN sessions s\n  ON s.started_at <= g.bucket\n AND coalesce(s.stopped_at, now()) >= g.bucket\n AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\nGROUP BY g.bucket\nORDER BY g.bucket",
+              "format": "time_series",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Plays per Day",
+          "id": 11,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 6
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "drawStyle": "bars",
+                "fillOpacity": 80,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "max"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT $__timeGroup(started_at, '1d') AS \"time\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 1",
+              "format": "time_series",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 14
+          },
+          "id": 102,
+          "panels": [],
+          "title": "Content",
+          "type": "row"
+        },
+        {
+          "type": "table",
+          "title": "Top Series",
+          "id": 20,
+          "gridPos": {
+            "h": 10,
+            "w": 8,
+            "x": 0,
+            "y": 15
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT grandparent_title AS \"Series\", count(*) AS \"Plays\",\n       round(sum(duration_ms)/3600000.0, 1) AS \"Hours\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s\nWHERE $__timeFilter(started_at) AND media_type = 'episode' AND grandparent_title IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\nGROUP BY 1 ORDER BY 2 DESC LIMIT 25",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Top Movies",
+          "id": 21,
+          "gridPos": {
+            "h": 10,
+            "w": 8,
+            "x": 8,
+            "y": 15
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT media_title AS \"Movie\", count(*) AS \"Plays\",\n       round(sum(duration_ms)/3600000.0, 1) AS \"Hours\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s\nWHERE $__timeFilter(started_at) AND media_type = 'movie' AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\nGROUP BY 1 ORDER BY 2 DESC LIMIT 25",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "piechart",
+          "title": "Media Type Mix",
+          "id": 22,
+          "gridPos": {
+            "h": 10,
+            "w": 8,
+            "x": 16,
+            "y": 15
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              },
+              "mappings": [],
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "right",
+              "showLegend": true,
+              "values": [
+                "value",
+                "percent"
+              ]
+            },
+            "pieType": "donut",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT media_type AS \"Type\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\nGROUP BY 1 ORDER BY 2 DESC",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 25
+          },
+          "id": 103,
+          "panels": [],
+          "title": "Users",
+          "type": "row"
+        },
+        {
+          "type": "table",
+          "title": "Top Users",
+          "id": 30,
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 0,
+            "y": 26
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Hours"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "h"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Last seen"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "dateTimeAsLocal"
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT su.username AS \"User\", count(s.id) AS \"Plays\",\n       round(sum(s.duration_ms)/3600000.0, 1) AS \"Hours\",\n       max(s.started_at) AS \"Last seen\"\nFROM sessions s JOIN server_users su ON su.id = s.server_user_id\nWHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY su.username ORDER BY 3 DESC NULLS LAST LIMIT 50",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "barchart",
+          "title": "Watch Hours by User (Top 15)",
+          "id": 31,
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 12,
+            "y": 26
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "fillOpacity": 80,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineWidth": 1,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "unit": "h",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "barRadius": 0,
+            "barWidth": 0.8,
+            "fullHighlight": false,
+            "groupWidth": 0.7,
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
+            },
+            "orientation": "horizontal",
+            "showValue": "auto",
+            "stacking": "none",
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            },
+            "xTickLabelRotation": 0,
+            "xTickLabelSpacing": 0
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT su.username AS \"User\", round(sum(s.duration_ms)/3600000.0, 1) AS \"Hours\"\nFROM sessions s JOIN server_users su ON su.id = s.server_user_id\nWHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY su.username ORDER BY 2 DESC NULLS LAST LIMIT 15",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 36
+          },
+          "id": 104,
+          "panels": [],
+          "title": "Quality & Transcode",
+          "type": "row"
+        },
+        {
+          "type": "piechart",
+          "title": "Transcode vs Direct Play",
+          "id": 40,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 37
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              },
+              "mappings": [],
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "right",
+              "showLegend": true,
+              "values": [
+                "value",
+                "percent"
+              ]
+            },
+            "pieType": "donut",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT CASE WHEN is_transcode THEN 'Transcode' ELSE 'Direct play' END AS \"Mode\",\n       count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Avg Bitrate Over Time",
+          "id": 41,
+          "gridPos": {
+            "h": 8,
+            "w": 16,
+            "x": 8,
+            "y": 37
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "drawStyle": "line",
+                "fillOpacity": 15,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "unit": "Kbits",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "max"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT $__timeGroup(started_at, $__interval) AS \"time\",\n       avg(bitrate) FILTER (WHERE bitrate > 0) AS \"Avg bitrate\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 1",
+              "format": "time_series",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 45
+          },
+          "id": 105,
+          "panels": [],
+          "title": "Devices & Clients",
+          "type": "row"
+        },
+        {
+          "type": "piechart",
+          "title": "By Device",
+          "id": 50,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 46
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              },
+              "mappings": [],
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "right",
+              "showLegend": true,
+              "values": [
+                "value",
+                "percent"
+              ]
+            },
+            "pieType": "donut",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT coalesce(device, 'unknown') AS \"Device\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 2 DESC",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "piechart",
+          "title": "By Platform",
+          "id": 51,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 46
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              },
+              "mappings": [],
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "right",
+              "showLegend": true,
+              "values": [
+                "value",
+                "percent"
+              ]
+            },
+            "pieType": "donut",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT coalesce(platform, 'unknown') AS \"Platform\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 2 DESC",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Top Players",
+          "id": 52,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 46
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT coalesce(player_name, product, 'unknown') AS \"Player\", count(*) AS \"Plays\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 2 DESC LIMIT 25",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 54
+          },
+          "id": 106,
+          "panels": [],
+          "title": "Geography",
+          "type": "row"
+        },
+        {
+          "type": "geomap",
+          "title": "Session Map",
+          "id": 60,
+          "gridPos": {
+            "h": 12,
+            "w": 16,
+            "x": 0,
+            "y": 55
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "basemap": {
+              "config": {},
+              "name": "Layer 0",
+              "type": "default"
+            },
+            "controls": {
+              "mouseWheelZoom": true,
+              "showAttribution": true,
+              "showDebug": false,
+              "showMeasure": false,
+              "showScale": false,
+              "showZoom": true
+            },
+            "layers": [
+              {
+                "config": {
+                  "showLegend": true,
+                  "style": {
+                    "color": {
+                      "fixed": "dark-blue"
+                    },
+                    "opacity": 0.5,
+                    "size": {
+                      "field": "plays",
+                      "fixed": 5,
+                      "max": 22,
+                      "min": 4
+                    },
+                    "symbol": {
+                      "fixed": "img/icons/marker/circle.svg",
+                      "mode": "fixed"
+                    },
+                    "textConfig": {
+                      "fontSize": 12,
+                      "offsetX": 0,
+                      "offsetY": 0,
+                      "textAlign": "center",
+                      "textBaseline": "middle"
+                    }
+                  }
+                },
+                "location": {
+                  "latitude": "latitude",
+                  "longitude": "longitude",
+                  "mode": "coords"
+                },
+                "name": "Sessions",
+                "tooltip": true,
+                "type": "markers"
+              }
+            ],
+            "tooltip": {
+              "mode": "details"
+            },
+            "view": {
+              "allLayers": true,
+              "id": "coords",
+              "lat": 33,
+              "lon": -98,
+              "zoom": 4
+            }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT geo_lat AS \"latitude\", geo_lon AS \"longitude\", geo_city AS \"city\", count(*) AS \"plays\"\nFROM sessions s\nWHERE $__timeFilter(started_at) AND geo_lat IS NOT NULL AND geo_lon IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY geo_lat, geo_lon, geo_city",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "table",
+          "title": "Top Locations",
+          "id": 61,
+          "gridPos": {
+            "h": 12,
+            "w": 8,
+            "x": 16,
+            "y": 55
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "tracearr-timescale"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "tracearr-timescale"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT geo_country AS \"Country\", geo_city AS \"City\", count(*) AS \"Plays\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s\nWHERE $__timeFilter(started_at) AND geo_country IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1, 2 ORDER BY 3 DESC LIMIT 50",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "refresh": "1m",
+      "schemaVersion": 39,
+      "tags": [
+        "tracearr",
+        "media"
+      ],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "text": "All",
+              "value": "All"
+            },
+            "datasource": {
+              "type": "postgres",
+              "uid": "tracearr-timescale"
+            },
+            "definition": "SELECT name FROM servers ORDER BY name",
+            "includeAll": true,
+            "allValue": "All",
+            "label": "Server",
+            "multi": false,
+            "name": "server",
+            "options": [],
+            "query": "SELECT name FROM servers ORDER BY name",
+            "refresh": 1,
+            "regex": "",
+            "sort": 1,
+            "type": "query",
+            "hide": 0
+          },
+          {
+            "current": {
+              "text": "All",
+              "value": "All"
+            },
+            "datasource": {
+              "type": "postgres",
+              "uid": "tracearr-timescale"
+            },
+            "definition": "SELECT DISTINCT media_type FROM sessions WHERE media_type IS NOT NULL ORDER BY 1",
+            "includeAll": true,
+            "allValue": "All",
+            "label": "Media type",
+            "multi": false,
+            "name": "media_type",
+            "options": [],
+            "query": "SELECT DISTINCT media_type FROM sessions WHERE media_type IS NOT NULL ORDER BY 1",
+            "refresh": 1,
+            "regex": "",
+            "sort": 1,
+            "type": "query",
+            "hide": 0
+          }
+        ]
+      },
+      "time": {
+        "from": "now-7d",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "Tracearr \u2014 Media Usage",
+      "uid": "tracearr-media",
+      "version": 1,
+      "weekStart": ""
+    }
