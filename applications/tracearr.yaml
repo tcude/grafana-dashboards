@@ -38,7 +38,7 @@ data:
           "id": 1,
           "gridPos": {
             "h": 4,
-            "w": 4,
+            "w": 3,
             "x": 0,
             "y": 1
           },
@@ -89,7 +89,71 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT count(*) AS \"Active\" FROM sessions s WHERE stopped_at IS NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
+              "rawSql": "SELECT count(*) AS \"Active\" FROM sessions s WHERE stopped_at IS NULL AND last_seen_at > now() - interval '15 minutes' AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Peak Concurrent",
+          "id": 2,
+          "gridPos": {
+            "h": 4,
+            "w": 3,
+            "x": 3,
+            "y": 1
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "${ds}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "${ds}"
+              },
+              "rawQuery": true,
+              "rawSql": "WITH ev AS (\n  SELECT s.started_at AS t, 1 AS d FROM sessions s WHERE s.started_at <= $__timeTo() AND coalesce(s.stopped_at, now()) >= $__timeFrom() AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n  UNION ALL\n  SELECT coalesce(s.stopped_at, now()) AS t, -1 AS d FROM sessions s WHERE s.started_at <= $__timeTo() AND coalesce(s.stopped_at, now()) >= $__timeFrom() AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n),\nrun AS (SELECT t, sum(d) OVER (ORDER BY t, d DESC) AS c FROM ev)\nSELECT coalesce(max(c),0) AS \"Peak\" FROM run WHERE t BETWEEN $__timeFrom() AND $__timeTo()",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -99,11 +163,11 @@ data:
         {
           "type": "stat",
           "title": "Plays",
-          "id": 2,
+          "id": 3,
           "gridPos": {
             "h": 4,
-            "w": 4,
-            "x": 4,
+            "w": 3,
+            "x": 6,
             "y": 1
           },
           "datasource": {
@@ -153,7 +217,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         min(started_at) AS play_start, sum(duration_ms) AS play_ms\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT count(*) AS \"Plays\" FROM plays",
+              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         s.season_number, s.episode_number, s.channel_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms, s.progress_ms, s.total_duration_ms,\n         s.watched, s.is_transcode, coalesce(s.player_name, s.product) AS player, s.geo_city,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         max(season_number) AS season_number, max(episode_number) AS episode_number,\n         min(channel_title) AS channel_title, min(started_at) AS play_start,\n         sum(duration_ms) AS play_ms, max(progress_ms) AS max_progress,\n         max(total_duration_ms) AS total_dur, bool_or(watched) AS watched,\n         bool_or(is_transcode) AS any_transcode,\n         (array_agg(player ORDER BY started_at DESC))[1] AS player,\n         (array_agg(geo_city ORDER BY started_at DESC))[1] AS geo_city\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT count(*) AS \"Plays\" FROM plays",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -163,11 +227,11 @@ data:
         {
           "type": "stat",
           "title": "Unique Viewers",
-          "id": 3,
+          "id": 4,
           "gridPos": {
             "h": 4,
-            "w": 4,
-            "x": 8,
+            "w": 3,
+            "x": 9,
             "y": 1
           },
           "datasource": {
@@ -217,7 +281,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT count(DISTINCT server_user_id) AS \"Viewers\" FROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
+              "rawSql": "SELECT count(DISTINCT server_user_id) AS \"Viewers\" FROM sessions s WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -227,10 +291,10 @@ data:
         {
           "type": "stat",
           "title": "Watch Hours",
-          "id": 4,
+          "id": 5,
           "gridPos": {
             "h": 4,
-            "w": 4,
+            "w": 3,
             "x": 12,
             "y": 1
           },
@@ -282,7 +346,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT round(sum(duration_ms)/3600000.0, 1) AS \"Hours\" FROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
+              "rawSql": "SELECT round(sum(duration_ms)/3600000.0, 1) AS \"Hours\" FROM sessions s WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -291,12 +355,12 @@ data:
         },
         {
           "type": "stat",
-          "title": "Transcode %",
-          "id": 5,
+          "title": "Completion %",
+          "id": 6,
           "gridPos": {
             "h": 4,
-            "w": 4,
-            "x": 16,
+            "w": 3,
+            "x": 15,
             "y": 1
           },
           "datasource": {
@@ -347,7 +411,72 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT round(100.0 * avg((is_transcode)::int), 1) AS \"Transcode\" FROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
+              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         s.season_number, s.episode_number, s.channel_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms, s.progress_ms, s.total_duration_ms,\n         s.watched, s.is_transcode, coalesce(s.player_name, s.product) AS player, s.geo_city,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         max(season_number) AS season_number, max(episode_number) AS episode_number,\n         min(channel_title) AS channel_title, min(started_at) AS play_start,\n         sum(duration_ms) AS play_ms, max(progress_ms) AS max_progress,\n         max(total_duration_ms) AS total_dur, bool_or(watched) AS watched,\n         bool_or(is_transcode) AS any_transcode,\n         (array_agg(player ORDER BY started_at DESC))[1] AS player,\n         (array_agg(geo_city ORDER BY started_at DESC))[1] AS geo_city\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT round(100.0 * count(*) FILTER (WHERE watched) / nullif(count(*),0), 1) AS \"Completed\" FROM plays",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Transcode %",
+          "id": 7,
+          "gridPos": {
+            "h": 4,
+            "w": 3,
+            "x": 18,
+            "y": 1
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "${ds}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "percent",
+              "decimals": 1
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "${ds}"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT round(100.0 * avg((is_transcode)::int), 1) AS \"Transcode\" FROM sessions s WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -357,11 +486,11 @@ data:
         {
           "type": "stat",
           "title": "Avg Bitrate",
-          "id": 6,
+          "id": 8,
           "gridPos": {
             "h": 4,
-            "w": 4,
-            "x": 20,
+            "w": 3,
+            "x": 21,
             "y": 1
           },
           "datasource": {
@@ -411,7 +540,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT round(avg(bitrate)) AS \"Bitrate\" FROM sessions s WHERE $__timeFilter(started_at) AND bitrate > 0 AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
+              "rawSql": "SELECT round(avg(bitrate)) AS \"Bitrate\" FROM sessions s WHERE $__timeFilter(s.started_at) AND bitrate > 0 AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -426,7 +555,111 @@ data:
             "x": 0,
             "y": 5
           },
-          "id": 101,
+          "id": 110,
+          "panels": [],
+          "title": "Now Playing",
+          "type": "row"
+        },
+        {
+          "type": "table",
+          "title": "Active Sessions",
+          "id": 20,
+          "gridPos": {
+            "h": 7,
+            "w": 24,
+            "x": 0,
+            "y": 6
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "${ds}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Progress %"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "gauge",
+                      "mode": "gradient"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "${ds}"
+              },
+              "rawQuery": true,
+              "rawSql": "SELECT su.username AS \"User\",\n       CASE WHEN s.media_type='episode' THEN s.grandparent_title || coalesce(' \u00b7 S'||lpad(s.season_number::text,2,'0')||'E'||lpad(s.episode_number::text,2,'0'),'') || coalesce(' \u00b7 '||nullif(s.media_title,''),'') WHEN s.media_type='live' THEN coalesce(s.channel_title, s.media_title, 'Live TV') ELSE coalesce(s.media_title,'Unknown') END AS \"Title\",\n       coalesce(s.player_name, s.product) AS \"Player\",\n       nullif(s.geo_city,'') AS \"Location\",\n       CASE WHEN s.is_transcode THEN 'Transcode' ELSE 'Direct Play' END AS \"Stream\",\n       round(100.0 * s.progress_ms / nullif(s.total_duration_ms,0)) AS \"Progress %\"\nFROM sessions s JOIN server_users su ON su.id = s.server_user_id\nWHERE s.stopped_at IS NULL AND s.last_seen_at > now() - interval '15 minutes' AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\nORDER BY s.started_at DESC",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 13
+          },
+          "id": 120,
           "panels": [],
           "title": "Streams Over Time",
           "type": "row"
@@ -434,12 +667,12 @@ data:
         {
           "type": "timeseries",
           "title": "Concurrent Streams",
-          "id": 10,
+          "id": 30,
           "gridPos": {
             "h": 8,
             "w": 16,
             "x": 0,
-            "y": 6
+            "y": 14
           },
           "datasource": {
             "type": "postgres",
@@ -518,7 +751,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "WITH ev AS (\n  SELECT s.started_at AS t, 1 AS d FROM sessions s\n   WHERE s.started_at <= $__timeTo() AND coalesce(s.stopped_at, now()) >= $__timeFrom() AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n  UNION ALL\n  SELECT coalesce(s.stopped_at, now()) AS t, -1 AS d FROM sessions s\n   WHERE s.started_at <= $__timeTo() AND coalesce(s.stopped_at, now()) >= $__timeFrom() AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n),\nrun AS (SELECT t, sum(d) OVER (ORDER BY t, d DESC) AS concurrent FROM ev)\nSELECT t AS \"time\", concurrent AS \"Concurrent streams\"\nFROM run WHERE t BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY t",
+              "rawSql": "WITH ev AS (\n  SELECT s.started_at AS t, 1 AS d FROM sessions s WHERE s.started_at <= $__timeTo() AND coalesce(s.stopped_at, now()) >= $__timeFrom() AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n  UNION ALL\n  SELECT coalesce(s.stopped_at, now()) AS t, -1 AS d FROM sessions s WHERE s.started_at <= $__timeTo() AND coalesce(s.stopped_at, now()) >= $__timeFrom() AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n),\nrun AS (SELECT t, sum(d) OVER (ORDER BY t, d DESC) AS concurrent FROM ev)\nSELECT t AS \"time\", concurrent AS \"Concurrent streams\"\nFROM run WHERE t BETWEEN $__timeFrom() AND $__timeTo() ORDER BY t",
               "format": "time_series",
               "editorMode": "code",
               "refId": "A"
@@ -528,12 +761,12 @@ data:
         {
           "type": "timeseries",
           "title": "Plays per Day",
-          "id": 11,
+          "id": 31,
           "gridPos": {
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 6
+            "y": 14
           },
           "datasource": {
             "type": "postgres",
@@ -612,7 +845,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         min(started_at) AS play_start, sum(duration_ms) AS play_ms\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT $__timeGroup(play_start, '1d') AS \"time\", count(*) AS \"Plays\"\nFROM plays GROUP BY 1 ORDER BY 1",
+              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         s.season_number, s.episode_number, s.channel_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms, s.progress_ms, s.total_duration_ms,\n         s.watched, s.is_transcode, coalesce(s.player_name, s.product) AS player, s.geo_city,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         max(season_number) AS season_number, max(episode_number) AS episode_number,\n         min(channel_title) AS channel_title, min(started_at) AS play_start,\n         sum(duration_ms) AS play_ms, max(progress_ms) AS max_progress,\n         max(total_duration_ms) AS total_dur, bool_or(watched) AS watched,\n         bool_or(is_transcode) AS any_transcode,\n         (array_agg(player ORDER BY started_at DESC))[1] AS player,\n         (array_agg(geo_city ORDER BY started_at DESC))[1] AS geo_city\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT $__timeGroup(play_start, '1d') AS \"time\", count(*) AS \"Plays\" FROM plays GROUP BY 1 ORDER BY 1",
               "format": "time_series",
               "editorMode": "code",
               "refId": "A"
@@ -625,9 +858,9 @@ data:
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 14
+            "y": 22
           },
-          "id": 102,
+          "id": 130,
           "panels": [],
           "title": "Content",
           "type": "row"
@@ -635,12 +868,12 @@ data:
         {
           "type": "table",
           "title": "Top Series",
-          "id": 20,
+          "id": 40,
           "gridPos": {
             "h": 10,
             "w": 8,
             "x": 0,
-            "y": 15
+            "y": 23
           },
           "datasource": {
             "type": "postgres",
@@ -692,7 +925,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND s.media_type = 'episode' AND s.grandparent_title IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         min(started_at) AS play_start, sum(duration_ms) AS play_ms\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT grandparent_title AS \"Series\", count(*) AS \"Plays\",\n       round(sum(play_ms)/3600000.0, 1) AS \"Hours\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM plays GROUP BY 1 ORDER BY 2 DESC LIMIT 25",
+              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         s.season_number, s.episode_number, s.channel_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms, s.progress_ms, s.total_duration_ms,\n         s.watched, s.is_transcode, coalesce(s.player_name, s.product) AS player, s.geo_city,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND s.media_type = 'episode' AND s.grandparent_title IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         max(season_number) AS season_number, max(episode_number) AS episode_number,\n         min(channel_title) AS channel_title, min(started_at) AS play_start,\n         sum(duration_ms) AS play_ms, max(progress_ms) AS max_progress,\n         max(total_duration_ms) AS total_dur, bool_or(watched) AS watched,\n         bool_or(is_transcode) AS any_transcode,\n         (array_agg(player ORDER BY started_at DESC))[1] AS player,\n         (array_agg(geo_city ORDER BY started_at DESC))[1] AS geo_city\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT grandparent_title AS \"Series\", count(*) AS \"Plays\",\n       round(sum(play_ms)/3600000.0, 1) AS \"Hours\", count(DISTINCT server_user_id) AS \"Viewers\"\nFROM plays GROUP BY 1 ORDER BY 2 DESC LIMIT 25",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -702,12 +935,12 @@ data:
         {
           "type": "table",
           "title": "Top Movies",
-          "id": 21,
+          "id": 41,
           "gridPos": {
             "h": 10,
             "w": 8,
             "x": 8,
-            "y": 15
+            "y": 23
           },
           "datasource": {
             "type": "postgres",
@@ -759,7 +992,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND s.media_type = 'movie' AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         min(started_at) AS play_start, sum(duration_ms) AS play_ms\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT media_title AS \"Movie\", count(*) AS \"Plays\",\n       round(sum(play_ms)/3600000.0, 1) AS \"Hours\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM plays GROUP BY 1 ORDER BY 2 DESC LIMIT 25",
+              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         s.season_number, s.episode_number, s.channel_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms, s.progress_ms, s.total_duration_ms,\n         s.watched, s.is_transcode, coalesce(s.player_name, s.product) AS player, s.geo_city,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND s.media_type = 'movie' AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         max(season_number) AS season_number, max(episode_number) AS episode_number,\n         min(channel_title) AS channel_title, min(started_at) AS play_start,\n         sum(duration_ms) AS play_ms, max(progress_ms) AS max_progress,\n         max(total_duration_ms) AS total_dur, bool_or(watched) AS watched,\n         bool_or(is_transcode) AS any_transcode,\n         (array_agg(player ORDER BY started_at DESC))[1] AS player,\n         (array_agg(geo_city ORDER BY started_at DESC))[1] AS geo_city\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT media_title AS \"Movie\", count(*) AS \"Plays\",\n       round(sum(play_ms)/3600000.0, 1) AS \"Hours\", count(DISTINCT server_user_id) AS \"Viewers\"\nFROM plays GROUP BY 1 ORDER BY 2 DESC LIMIT 25",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -769,12 +1002,12 @@ data:
         {
           "type": "piechart",
           "title": "Media Type Mix",
-          "id": 22,
+          "id": 42,
           "gridPos": {
             "h": 10,
             "w": 8,
             "x": 16,
-            "y": 15
+            "y": 23
           },
           "datasource": {
             "type": "postgres",
@@ -828,7 +1061,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         min(started_at) AS play_start, sum(duration_ms) AS play_ms\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT media_type AS \"Type\", count(*) AS \"Plays\"\nFROM plays GROUP BY 1 ORDER BY 2 DESC",
+              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         s.season_number, s.episode_number, s.channel_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms, s.progress_ms, s.total_duration_ms,\n         s.watched, s.is_transcode, coalesce(s.player_name, s.product) AS player, s.geo_city,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}'))\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         max(season_number) AS season_number, max(episode_number) AS episode_number,\n         min(channel_title) AS channel_title, min(started_at) AS play_start,\n         sum(duration_ms) AS play_ms, max(progress_ms) AS max_progress,\n         max(total_duration_ms) AS total_dur, bool_or(watched) AS watched,\n         bool_or(is_transcode) AS any_transcode,\n         (array_agg(player ORDER BY started_at DESC))[1] AS player,\n         (array_agg(geo_city ORDER BY started_at DESC))[1] AS geo_city\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT media_type AS \"Type\", count(*) AS \"Plays\" FROM plays GROUP BY 1 ORDER BY 2 DESC",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -841,9 +1074,202 @@ data:
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 25
+            "y": 33
           },
-          "id": 103,
+          "id": 140,
+          "panels": [],
+          "title": "Activity Patterns (Central time)",
+          "type": "row"
+        },
+        {
+          "type": "barchart",
+          "title": "Plays by Hour of Day",
+          "id": 50,
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 0,
+            "y": 34
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "${ds}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "fillOpacity": 80,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineWidth": 1,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "barRadius": 0,
+            "barWidth": 0.8,
+            "fullHighlight": false,
+            "groupWidth": 0.7,
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
+            },
+            "orientation": "auto",
+            "showValue": "auto",
+            "stacking": "none",
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            },
+            "xTickLabelRotation": 0,
+            "xTickLabelSpacing": 0
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "${ds}"
+              },
+              "rawQuery": true,
+              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         s.season_number, s.episode_number, s.channel_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms, s.progress_ms, s.total_duration_ms,\n         s.watched, s.is_transcode, coalesce(s.player_name, s.product) AS player, s.geo_city,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         max(season_number) AS season_number, max(episode_number) AS episode_number,\n         min(channel_title) AS channel_title, min(started_at) AS play_start,\n         sum(duration_ms) AS play_ms, max(progress_ms) AS max_progress,\n         max(total_duration_ms) AS total_dur, bool_or(watched) AS watched,\n         bool_or(is_transcode) AS any_transcode,\n         (array_agg(player ORDER BY started_at DESC))[1] AS player,\n         (array_agg(geo_city ORDER BY started_at DESC))[1] AS geo_city\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT lpad(extract(hour FROM d)::int::text,2,'0') AS \"Hour\", count(*) AS \"Plays\"\nFROM (SELECT play_start AT TIME ZONE 'America/Chicago' AS d FROM plays) x GROUP BY 1 ORDER BY 1",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "barchart",
+          "title": "Plays by Day of Week",
+          "id": 51,
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 12,
+            "y": 34
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "${ds}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "fillOpacity": 80,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineWidth": 1,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "barRadius": 0,
+            "barWidth": 0.8,
+            "fullHighlight": false,
+            "groupWidth": 0.7,
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
+            },
+            "orientation": "auto",
+            "showValue": "auto",
+            "stacking": "none",
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            },
+            "xTickLabelRotation": 0,
+            "xTickLabelSpacing": 0
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "${ds}"
+              },
+              "rawQuery": true,
+              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         s.season_number, s.episode_number, s.channel_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms, s.progress_ms, s.total_duration_ms,\n         s.watched, s.is_transcode, coalesce(s.player_name, s.product) AS player, s.geo_city,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         max(season_number) AS season_number, max(episode_number) AS episode_number,\n         min(channel_title) AS channel_title, min(started_at) AS play_start,\n         sum(duration_ms) AS play_ms, max(progress_ms) AS max_progress,\n         max(total_duration_ms) AS total_dur, bool_or(watched) AS watched,\n         bool_or(is_transcode) AS any_transcode,\n         (array_agg(player ORDER BY started_at DESC))[1] AS player,\n         (array_agg(geo_city ORDER BY started_at DESC))[1] AS geo_city\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT to_char(d,'Dy') AS \"Day\", count(*) AS \"Plays\"\nFROM (SELECT play_start AT TIME ZONE 'America/Chicago' AS d FROM plays) x\nGROUP BY to_char(d,'Dy'), extract(dow FROM d) ORDER BY extract(dow FROM d)",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 41
+          },
+          "id": 150,
           "panels": [],
           "title": "Users",
           "type": "row"
@@ -851,12 +1277,12 @@ data:
         {
           "type": "table",
           "title": "Top Users",
-          "id": 30,
+          "id": 60,
           "gridPos": {
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 26
+            "y": 42
           },
           "datasource": {
             "type": "postgres",
@@ -937,7 +1363,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         min(started_at) AS play_start, sum(duration_ms) AS play_ms\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT su.username AS \"User\", count(*) AS \"Plays\",\n       round(sum(p.play_ms)/3600000.0, 1) AS \"Hours\",\n       max(p.play_start) AS \"Last seen\"\nFROM plays p JOIN server_users su ON su.id = p.server_user_id\nGROUP BY su.username ORDER BY 3 DESC NULLS LAST LIMIT 50",
+              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         s.season_number, s.episode_number, s.channel_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms, s.progress_ms, s.total_duration_ms,\n         s.watched, s.is_transcode, coalesce(s.player_name, s.product) AS player, s.geo_city,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         max(season_number) AS season_number, max(episode_number) AS episode_number,\n         min(channel_title) AS channel_title, min(started_at) AS play_start,\n         sum(duration_ms) AS play_ms, max(progress_ms) AS max_progress,\n         max(total_duration_ms) AS total_dur, bool_or(watched) AS watched,\n         bool_or(is_transcode) AS any_transcode,\n         (array_agg(player ORDER BY started_at DESC))[1] AS player,\n         (array_agg(geo_city ORDER BY started_at DESC))[1] AS geo_city\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT su.username AS \"User\", count(*) AS \"Plays\",\n       round(sum(p.play_ms)/3600000.0, 1) AS \"Hours\", max(p.play_start) AS \"Last seen\"\nFROM plays p JOIN server_users su ON su.id = p.server_user_id\nGROUP BY su.username ORDER BY 3 DESC NULLS LAST LIMIT 50",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -947,12 +1373,12 @@ data:
         {
           "type": "barchart",
           "title": "Watch Hours by User (Top 15)",
-          "id": 31,
+          "id": 61,
           "gridPos": {
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 26
+            "y": 42
           },
           "datasource": {
             "type": "postgres",
@@ -1027,7 +1453,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         min(started_at) AS play_start, sum(duration_ms) AS play_ms\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT su.username AS \"User\", round(sum(p.play_ms)/3600000.0, 1) AS \"Hours\"\nFROM plays p JOIN server_users su ON su.id = p.server_user_id\nGROUP BY su.username ORDER BY 2 DESC NULLS LAST LIMIT 15",
+              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         s.season_number, s.episode_number, s.channel_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms, s.progress_ms, s.total_duration_ms,\n         s.watched, s.is_transcode, coalesce(s.player_name, s.product) AS player, s.geo_city,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         max(season_number) AS season_number, max(episode_number) AS episode_number,\n         min(channel_title) AS channel_title, min(started_at) AS play_start,\n         sum(duration_ms) AS play_ms, max(progress_ms) AS max_progress,\n         max(total_duration_ms) AS total_dur, bool_or(watched) AS watched,\n         bool_or(is_transcode) AS any_transcode,\n         (array_agg(player ORDER BY started_at DESC))[1] AS player,\n         (array_agg(geo_city ORDER BY started_at DESC))[1] AS geo_city\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT su.username AS \"User\", round(sum(p.play_ms)/3600000.0, 1) AS \"Hours\"\nFROM plays p JOIN server_users su ON su.id = p.server_user_id\nGROUP BY su.username ORDER BY 2 DESC NULLS LAST LIMIT 15",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -1040,9 +1466,102 @@ data:
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 36
+            "y": 52
           },
-          "id": 104,
+          "id": 160,
+          "panels": [],
+          "title": "Recently Watched",
+          "type": "row"
+        },
+        {
+          "type": "table",
+          "title": "Recently Watched",
+          "id": 70,
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 53
+          },
+          "datasource": {
+            "type": "postgres",
+            "uid": "${ds}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "When"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "dateTimeAsLocal"
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "${ds}"
+              },
+              "rawQuery": true,
+              "rawSql": "WITH segs AS (\n  SELECT s.server_user_id, s.server_id, s.media_type, s.grandparent_title, s.media_title,\n         s.season_number, s.episode_number, s.channel_title,\n         coalesce(s.rating_key, s.channel_identifier, s.media_title) AS k,\n         s.started_at, s.stopped_at, s.duration_ms, s.progress_ms, s.total_duration_ms,\n         s.watched, s.is_transcode, coalesce(s.player_name, s.product) AS player, s.geo_city,\n         CASE WHEN lag(s.stopped_at) OVER w IS NULL\n                OR s.started_at - lag(s.stopped_at) OVER w > interval '3 hours'\n              THEN 1 ELSE 0 END AS isnew\n  FROM sessions s\n  WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\n  WINDOW w AS (PARTITION BY s.server_user_id,\n               coalesce(s.rating_key, s.channel_identifier, s.media_title) ORDER BY s.started_at)\n),\nisl AS (SELECT *, sum(isnew) OVER (PARTITION BY server_user_id, k ORDER BY started_at) AS island FROM segs),\nplays AS (\n  SELECT server_user_id, k, island, min(media_type) AS media_type,\n         min(grandparent_title) AS grandparent_title, min(media_title) AS media_title,\n         max(season_number) AS season_number, max(episode_number) AS episode_number,\n         min(channel_title) AS channel_title, min(started_at) AS play_start,\n         sum(duration_ms) AS play_ms, max(progress_ms) AS max_progress,\n         max(total_duration_ms) AS total_dur, bool_or(watched) AS watched,\n         bool_or(is_transcode) AS any_transcode,\n         (array_agg(player ORDER BY started_at DESC))[1] AS player,\n         (array_agg(geo_city ORDER BY started_at DESC))[1] AS geo_city\n  FROM isl GROUP BY server_user_id, k, island HAVING sum(duration_ms) >= 120000\n)\nSELECT p.play_start AS \"When\", su.username AS \"User\",\n       CASE WHEN p.media_type='episode' THEN p.grandparent_title || coalesce(' \u00b7 S'||lpad(p.season_number::text,2,'0')||'E'||lpad(p.episode_number::text,2,'0'),'') || coalesce(' \u00b7 '||nullif(p.media_title,''),'') WHEN p.media_type='live' THEN coalesce(p.channel_title, p.media_title, 'Live TV') ELSE coalesce(p.media_title,'Unknown') END AS \"Title\",\n       round(p.play_ms/60000.0) AS \"Watched (min)\",\n       CASE WHEN p.watched THEN '\u2713' ELSE '' END AS \"Finished\",\n       p.player AS \"Player\", nullif(p.geo_city,'') AS \"Location\",\n       CASE WHEN p.any_transcode THEN 'Transcode' ELSE 'Direct' END AS \"Stream\"\nFROM plays p JOIN server_users su ON su.id = p.server_user_id\nORDER BY p.play_start DESC LIMIT 100",
+              "format": "table",
+              "editorMode": "code",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 63
+          },
+          "id": 170,
           "panels": [],
           "title": "Quality & Transcode",
           "type": "row"
@@ -1050,12 +1569,12 @@ data:
         {
           "type": "piechart",
           "title": "Transcode vs Direct Play",
-          "id": 40,
+          "id": 80,
           "gridPos": {
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 37
+            "y": 64
           },
           "datasource": {
             "type": "postgres",
@@ -1109,7 +1628,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT CASE WHEN is_transcode THEN 'Transcode' ELSE 'Direct play' END AS \"Mode\",\n       count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1",
+              "rawSql": "SELECT CASE WHEN is_transcode THEN 'Transcode' ELSE 'Direct play' END AS \"Mode\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') GROUP BY 1",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -1119,12 +1638,12 @@ data:
         {
           "type": "timeseries",
           "title": "Avg Bitrate Over Time",
-          "id": 41,
+          "id": 81,
           "gridPos": {
             "h": 8,
             "w": 16,
             "x": 8,
-            "y": 37
+            "y": 64
           },
           "datasource": {
             "type": "postgres",
@@ -1203,7 +1722,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT $__timeGroup(started_at, $__interval) AS \"time\",\n       avg(bitrate) FILTER (WHERE bitrate > 0) AS \"Avg bitrate\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 1",
+              "rawSql": "SELECT $__timeGroup(started_at, $__interval) AS \"time\", avg(bitrate) FILTER (WHERE bitrate>0) AS \"Avg bitrate\"\nFROM sessions s WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') GROUP BY 1 ORDER BY 1",
               "format": "time_series",
               "editorMode": "code",
               "refId": "A"
@@ -1216,9 +1735,9 @@ data:
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 45
+            "y": 72
           },
-          "id": 105,
+          "id": 180,
           "panels": [],
           "title": "Devices & Clients",
           "type": "row"
@@ -1226,12 +1745,12 @@ data:
         {
           "type": "piechart",
           "title": "By Device",
-          "id": 50,
+          "id": 90,
           "gridPos": {
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 46
+            "y": 73
           },
           "datasource": {
             "type": "postgres",
@@ -1285,7 +1804,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT coalesce(device, 'unknown') AS \"Device\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 2 DESC",
+              "rawSql": "SELECT coalesce(device, 'unknown') AS \"Device\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') GROUP BY 1 ORDER BY 2 DESC",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -1295,12 +1814,12 @@ data:
         {
           "type": "piechart",
           "title": "By Platform",
-          "id": 51,
+          "id": 91,
           "gridPos": {
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 46
+            "y": 73
           },
           "datasource": {
             "type": "postgres",
@@ -1354,7 +1873,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT coalesce(platform, 'unknown') AS \"Platform\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 2 DESC",
+              "rawSql": "SELECT coalesce(platform, 'unknown') AS \"Platform\", count(*) AS \"Plays\"\nFROM sessions s WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') GROUP BY 1 ORDER BY 2 DESC",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -1364,12 +1883,12 @@ data:
         {
           "type": "table",
           "title": "Top Players",
-          "id": 52,
+          "id": 92,
           "gridPos": {
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 46
+            "y": 73
           },
           "datasource": {
             "type": "postgres",
@@ -1421,7 +1940,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT coalesce(player_name, product, 'unknown') AS \"Player\", count(*) AS \"Plays\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s WHERE $__timeFilter(started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1 ORDER BY 2 DESC LIMIT 25",
+              "rawSql": "SELECT coalesce(player_name, product, 'unknown') AS \"Player\", count(*) AS \"Plays\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s WHERE $__timeFilter(s.started_at) AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}') GROUP BY 1 ORDER BY 2 DESC LIMIT 25",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -1434,9 +1953,9 @@ data:
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 54
+            "y": 81
           },
-          "id": 106,
+          "id": 190,
           "panels": [],
           "title": "Geography",
           "type": "row"
@@ -1444,12 +1963,12 @@ data:
         {
           "type": "geomap",
           "title": "Session Map",
-          "id": 60,
+          "id": 200,
           "gridPos": {
             "h": 12,
             "w": 16,
             "x": 0,
-            "y": 55
+            "y": 82
           },
           "datasource": {
             "type": "postgres",
@@ -1544,7 +2063,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT geo_lat AS \"latitude\", geo_lon AS \"longitude\", geo_city AS \"city\", count(*) AS \"plays\"\nFROM sessions s\nWHERE $__timeFilter(started_at) AND geo_lat IS NOT NULL AND geo_lon IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY geo_lat, geo_lon, geo_city",
+              "rawSql": "SELECT geo_lat AS \"latitude\", geo_lon AS \"longitude\", geo_city AS \"city\", count(*) AS \"plays\"\nFROM sessions s WHERE $__timeFilter(s.started_at) AND geo_lat IS NOT NULL AND geo_lon IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY geo_lat, geo_lon, geo_city",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -1554,12 +2073,12 @@ data:
         {
           "type": "table",
           "title": "Top Locations",
-          "id": 61,
+          "id": 201,
           "gridPos": {
             "h": 12,
             "w": 8,
             "x": 16,
-            "y": 55
+            "y": 82
           },
           "datasource": {
             "type": "postgres",
@@ -1611,7 +2130,7 @@ data:
                 "uid": "${ds}"
               },
               "rawQuery": true,
-              "rawSql": "SELECT geo_country AS \"Country\", geo_city AS \"City\", count(*) AS \"Plays\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s\nWHERE $__timeFilter(started_at) AND geo_country IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1, 2 ORDER BY 3 DESC LIMIT 50",
+              "rawSql": "SELECT geo_country AS \"Country\", geo_city AS \"City\", count(*) AS \"Plays\",\n       count(DISTINCT server_user_id) AS \"Viewers\"\nFROM sessions s WHERE $__timeFilter(s.started_at) AND geo_country IS NOT NULL AND ('${server}' = 'All' OR s.server_id = (SELECT id FROM servers WHERE name = '${server}')) AND ('${media_type}' = 'All' OR s.media_type = '${media_type}')\nGROUP BY 1,2 ORDER BY 3 DESC LIMIT 50",
               "format": "table",
               "editorMode": "code",
               "refId": "A"
@@ -1689,7 +2208,7 @@ data:
         ]
       },
       "time": {
-        "from": "now-7d",
+        "from": "now-30d",
         "to": "now"
       },
       "timepicker": {},
