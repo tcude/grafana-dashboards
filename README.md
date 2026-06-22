@@ -74,6 +74,34 @@ All dashboards should use template variables for datasource selection:
 
 This allows dashboards to work with any Prometheus-compatible datasource (Prometheus, VictoriaMetrics, etc.).
 
+## Tracearr dashboard datasource (manual)
+
+`applications/tracearr.yaml` reads from Tracearr's TimescaleDB on
+`media01.tcudelocal.net:5433` (read-only `grafana_ro` user). That Postgres
+datasource is **not** in Git — file-based datasource provisioning crashes
+Grafana 12.x startup, so it was created via the Grafana API and lives only in
+Grafana's database on its PVC. It survives pod restarts; it is only lost if the
+Grafana PVC is destroyed (rebuild/migration). The dashboard uses a `${ds}`
+datasource picker, so it auto-binds to whatever postgres datasource exists.
+
+To recreate it (e.g. after a Grafana volume loss):
+
+```sh
+kubectl -n monitoring exec deploy/kube-prometheus-stack-grafana -c grafana -- sh -c \
+'curl -s -w "\n%{http_code}\n" -u "$GF_SECURITY_ADMIN_USER:$GF_SECURITY_ADMIN_PASSWORD" \
+ -X POST localhost:3000/api/datasources -H "Content-Type: application/json" -d @- <<JSON
+{"name":"Tracearr TimescaleDB","type":"postgres","access":"proxy",
+ "url":"media01.tcudelocal.net:5433","user":"grafana_ro","database":"tracearr",
+ "jsonData":{"sslmode":"disable","postgresVersion":1600,"timescaledb":true,"database":"tracearr"},
+ "secureJsonData":{"password":"<grafana_ro password>"}}
+JSON'
+```
+
+The `grafana_ro` password lives in the Tracearr stack on media01
+(`/home/tcude/docker/tracearr`); rotate with `ALTER ROLE grafana_ro PASSWORD ...`
+then re-run the command above with the new value. Port `5433` is published from
+the `timescale` service in that stack's `docker-compose.yml`.
+
 ## Related
 
 - **Deployed by:** ArgoCD Application in `manifests/argocd/apps/grafana-dashboards.yaml`
