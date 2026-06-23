@@ -74,6 +74,15 @@ All dashboards should use template variables for datasource selection:
 
 This allows dashboards to work with any Prometheus-compatible datasource (Prometheus, VictoriaMetrics, etc.).
 
+## Home Assistant dashboard datasource
+
+`applications/home-assistant.yaml` reads from bucket `home_assistant` through a
+`${ds}` InfluxDB datasource picker. Live discovery on 2026-06-23 found useful
+series for server room plug power/energy, UDM Pro utilization, host resources
+for chico/dallas/lubbock, AdGuard query counters, Speedtest, and home
+temperature/humidity. The generic explorer panels still expose measurement,
+field, and entity variables for anything not promoted to a first-class panel.
+
 ## Tracearr dashboard datasource (manual)
 
 `applications/tracearr.yaml` reads from Tracearr's TimescaleDB on
