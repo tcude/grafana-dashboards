@@ -1,0 +1,2815 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-claude-code-unified-v3
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Applications"
+data:
+  claudecode-unified-v3.json: |-
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "Claude Code usage dashboard with token-derived API-equivalent cost estimates and exporter cost diagnostics.",
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "links": [
+        {
+          "asDropdown": false,
+          "icon": "external link",
+          "includeVars": false,
+          "keepTime": false,
+          "tags": [],
+          "targetBlank": true,
+          "title": "Claude API pricing",
+          "tooltip": "Official Anthropic pricing used by the v3 cost formulas",
+          "type": "link",
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing"
+        }
+      ],
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "panels": [],
+          "title": "Overview",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Token-derived API-equivalent cost for the selected range. Uses current first-party Claude API pricing and 5-minute cache write pricing.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 10
+                  },
+                  {
+                    "color": "orange",
+                    "value": 50
+                  },
+                  {
+                    "color": "red",
+                    "value": 100
+                  }
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 0,
+            "y": 1
+          },
+          "id": 2,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "(((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"output\"}[$__range])) or vector(0)) * 50) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"input\"}[$__range])) or vector(0)) * 5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 6.25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"output\"}[$__range])) or vector(0)) * 25) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"output\"}[$__range])) or vector(0)) * 50) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"input\"}[$__range])) or vector(0)) * 2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 2.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"output\"}[$__range])) or vector(0)) * 10) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"input\"}[$__range])) or vector(0)) * 3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 3.75 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"output\"}[$__range])) or vector(0)) * 15) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"input\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 1.25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"output\"}[$__range])) or vector(0)) * 5) / 1000000)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "API Equivalent Cost",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Token-derived current burn rate using 5-minute token rates, shown as dollars per hour.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 2
+                  },
+                  {
+                    "color": "orange",
+                    "value": 10
+                  },
+                  {
+                    "color": "red",
+                    "value": 25
+                  }
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 4,
+            "y": 1
+          },
+          "id": 3,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "(((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"input\"}[5m])) or vector(0)) * 10 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheCreation\"}[5m])) or vector(0)) * 12.5 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheRead\"}[5m])) or vector(0)) * 1 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"output\"}[5m])) or vector(0)) * 50) / 1000000 * 3600 + ((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"input\"}[5m])) or vector(0)) * 5 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheCreation\"}[5m])) or vector(0)) * 6.25 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheRead\"}[5m])) or vector(0)) * 0.5 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"output\"}[5m])) or vector(0)) * 25) / 1000000 * 3600 + ((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"input\"}[5m])) or vector(0)) * 10 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheCreation\"}[5m])) or vector(0)) * 12.5 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheRead\"}[5m])) or vector(0)) * 1 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"output\"}[5m])) or vector(0)) * 50) / 1000000 * 3600 + ((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"input\"}[5m])) or vector(0)) * 2 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheCreation\"}[5m])) or vector(0)) * 2.5 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheRead\"}[5m])) or vector(0)) * 0.2 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"output\"}[5m])) or vector(0)) * 10) / 1000000 * 3600 + ((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"input\"}[5m])) or vector(0)) * 3 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheCreation\"}[5m])) or vector(0)) * 3.75 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheRead\"}[5m])) or vector(0)) * 0.3 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"output\"}[5m])) or vector(0)) * 15) / 1000000 * 3600 + ((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"input\"}[5m])) or vector(0)) * 1 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheCreation\"}[5m])) or vector(0)) * 1.25 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheRead\"}[5m])) or vector(0)) * 0.1 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"output\"}[5m])) or vector(0)) * 5) / 1000000 * 3600)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Burn Rate",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Total Claude Code tokens in the selected range.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 8,
+            "y": 1
+          },
+          "id": 4,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(increase(claude_code_token_usage_tokens_total[$__range])) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Total Tokens",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Generated output tokens in the selected range.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 12,
+            "y": 1
+          },
+          "id": 5,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(increase(claude_code_token_usage_tokens_total{type=\"output\"}[$__range])) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Output Tokens",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Cache reads divided by cache reads plus regular input tokens.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "percent",
+              "decimals": 1
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 16,
+            "y": 1
+          },
+          "id": 6,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "100 * (sum(increase(claude_code_token_usage_tokens_total{type=\"cacheRead\"}[$__range])) or vector(0)) / clamp_min((sum(increase(claude_code_token_usage_tokens_total{type=\"cacheRead\"}[$__range])) or vector(0)) + (sum(increase(claude_code_token_usage_tokens_total{type=\"input\"}[$__range])) or vector(0)), 1)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Cache Hit Rate",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Sessions with exporter-reported cost movement in the last hour.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 20,
+            "y": 1
+          },
+          "id": 7,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "count(sum by (session_id)(increase(claude_code_cost_usage_USD_total[1h])) > 0) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Active Sessions",
+          "type": "stat"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 5
+          },
+          "id": 8,
+          "panels": [],
+          "title": "Cost Accuracy",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Token-derived estimated API cost by model for the selected range.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 5
+                  },
+                  {
+                    "color": "orange",
+                    "value": 15
+                  },
+                  {
+                    "color": "red",
+                    "value": 30
+                  }
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 6
+          },
+          "id": 9,
+          "options": {
+            "displayMode": "gradient",
+            "maxVizHeight": 300,
+            "minVizHeight": 10,
+            "minVizWidth": 0,
+            "namePlacement": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "sizing": "auto",
+            "valueMode": "color"
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"output\"}[$__range])) or vector(0)) * 50) / 1000000",
+              "refId": "A",
+              "legendFormat": "Fable 5",
+              "instant": true
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"input\"}[$__range])) or vector(0)) * 5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 6.25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"output\"}[$__range])) or vector(0)) * 25) / 1000000",
+              "refId": "B",
+              "legendFormat": "Opus 4.8",
+              "instant": true
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"output\"}[$__range])) or vector(0)) * 50) / 1000000",
+              "refId": "C",
+              "legendFormat": "Opus 4.8 fast",
+              "instant": true
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"input\"}[$__range])) or vector(0)) * 2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 2.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"output\"}[$__range])) or vector(0)) * 10) / 1000000",
+              "refId": "D",
+              "legendFormat": "Sonnet 5 intro",
+              "instant": true
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"input\"}[$__range])) or vector(0)) * 3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 3.75 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"output\"}[$__range])) or vector(0)) * 15) / 1000000",
+              "refId": "E",
+              "legendFormat": "Sonnet 4.6",
+              "instant": true
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"input\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 1.25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"output\"}[$__range])) or vector(0)) * 5) / 1000000",
+              "refId": "F",
+              "legendFormat": "Haiku 4.5",
+              "instant": true
+            }
+          ],
+          "title": "API Equivalent Cost by Model",
+          "type": "bargauge"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Token-derived estimated API cost split by input, cache write, cache read, and output token categories.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 5
+                  },
+                  {
+                    "color": "orange",
+                    "value": 15
+                  },
+                  {
+                    "color": "red",
+                    "value": 30
+                  }
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 6
+          },
+          "id": 10,
+          "options": {
+            "displayMode": "gradient",
+            "maxVizHeight": 300,
+            "minVizHeight": 10,
+            "minVizWidth": 0,
+            "namePlacement": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "sizing": "auto",
+            "valueMode": "color"
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"input\"}[$__range])) or vector(0)) * 5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"input\"}[$__range])) or vector(0)) * 2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"input\"}[$__range])) or vector(0)) * 3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"input\"}[$__range])) or vector(0)) * 1) / 1000000",
+              "refId": "A",
+              "legendFormat": "input",
+              "instant": true
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 6.25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 2.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 3.75 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 1.25) / 1000000",
+              "refId": "B",
+              "legendFormat": "cacheCreation",
+              "instant": true
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.1) / 1000000",
+              "refId": "C",
+              "legendFormat": "cacheRead",
+              "instant": true
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"output\"}[$__range])) or vector(0)) * 50 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"output\"}[$__range])) or vector(0)) * 25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"output\"}[$__range])) or vector(0)) * 50 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"output\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"output\"}[$__range])) or vector(0)) * 15 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"output\"}[$__range])) or vector(0)) * 5) / 1000000",
+              "refId": "D",
+              "legendFormat": "output",
+              "instant": true
+            }
+          ],
+          "title": "API Equivalent Cost by Token Type",
+          "type": "bargauge"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Cost rate estimated from token counters. This is the preferred real-time cost view.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 16,
+            "x": 0,
+            "y": 14
+          },
+          "id": 11,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"input\"}[5m])) or vector(0)) * 10 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheCreation\"}[5m])) or vector(0)) * 12.5 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheRead\"}[5m])) or vector(0)) * 1 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"output\"}[5m])) or vector(0)) * 50) / 1000000 * 3600",
+              "refId": "A",
+              "legendFormat": "Fable 5"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"input\"}[5m])) or vector(0)) * 5 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheCreation\"}[5m])) or vector(0)) * 6.25 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheRead\"}[5m])) or vector(0)) * 0.5 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"output\"}[5m])) or vector(0)) * 25) / 1000000 * 3600",
+              "refId": "B",
+              "legendFormat": "Opus 4.8"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"input\"}[5m])) or vector(0)) * 10 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheCreation\"}[5m])) or vector(0)) * 12.5 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheRead\"}[5m])) or vector(0)) * 1 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"output\"}[5m])) or vector(0)) * 50) / 1000000 * 3600",
+              "refId": "C",
+              "legendFormat": "Opus 4.8 fast"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"input\"}[5m])) or vector(0)) * 2 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheCreation\"}[5m])) or vector(0)) * 2.5 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheRead\"}[5m])) or vector(0)) * 0.2 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"output\"}[5m])) or vector(0)) * 10) / 1000000 * 3600",
+              "refId": "D",
+              "legendFormat": "Sonnet 5 intro"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"input\"}[5m])) or vector(0)) * 3 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheCreation\"}[5m])) or vector(0)) * 3.75 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheRead\"}[5m])) or vector(0)) * 0.3 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"output\"}[5m])) or vector(0)) * 15) / 1000000 * 3600",
+              "refId": "E",
+              "legendFormat": "Sonnet 4.6"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "((sum(rate(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"input\"}[5m])) or vector(0)) * 1 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheCreation\"}[5m])) or vector(0)) * 1.25 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheRead\"}[5m])) or vector(0)) * 0.1 + (sum(rate(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"output\"}[5m])) or vector(0)) * 5) / 1000000 * 3600",
+              "refId": "F",
+              "legendFormat": "Haiku 4.5"
+            }
+          ],
+          "title": "Token-Derived Burn Rate by Model",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Tokens from model labels not covered by the v3 pricing map. This should be zero for complete cost reporting.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 16,
+            "y": 14
+          },
+          "id": 12,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(increase(claude_code_token_usage_tokens_total{model!=\"claude-fable-5\",model!=\"claude-opus-4-8\",model!=\"claude-opus-4-8[1m]\",model!=\"claude-sonnet-5\",model!=\"claude-sonnet-4-6\",model!=\"claude-haiku-4-5-20251001\"}[$__range])) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Unpriced Tokens",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "API-equivalent cost minus a fixed $100 subscription benchmark for the selected range. This is not actual spend.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 20,
+            "y": 14
+          },
+          "id": 13,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "(((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"output\"}[$__range])) or vector(0)) * 50) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"input\"}[$__range])) or vector(0)) * 5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 6.25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"output\"}[$__range])) or vector(0)) * 25) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"output\"}[$__range])) or vector(0)) * 50) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"input\"}[$__range])) or vector(0)) * 2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 2.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"output\"}[$__range])) or vector(0)) * 10) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"input\"}[$__range])) or vector(0)) * 3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 3.75 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"output\"}[$__range])) or vector(0)) * 15) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"input\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 1.25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"output\"}[$__range])) or vector(0)) * 5) / 1000000) - 100",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Subscription Delta",
+          "type": "stat"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 22
+          },
+          "id": 14,
+          "panels": [],
+          "title": "Usage Breakdown",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Selected range token usage by Claude Code token type.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 23
+          },
+          "id": 15,
+          "options": {
+            "displayLabels": [
+              "name",
+              "percent"
+            ],
+            "legend": {
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "values": [
+                "value",
+                "percent"
+              ]
+            },
+            "pieType": "pie",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum by (type) (increase(claude_code_token_usage_tokens_total[$__range]))",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Tokens by Type",
+          "type": "piechart"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Selected range token usage by model label.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 23
+          },
+          "id": 16,
+          "options": {
+            "displayLabels": [
+              "name",
+              "percent"
+            ],
+            "legend": {
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "values": [
+                "value",
+                "percent"
+              ]
+            },
+            "pieType": "pie",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum by (model) (increase(claude_code_token_usage_tokens_total[$__range]))",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Tokens by Model",
+          "type": "piechart"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Selected range active time split by user and CLI time.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 23
+          },
+          "id": 17,
+          "options": {
+            "displayLabels": [
+              "name",
+              "percent"
+            ],
+            "legend": {
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "values": [
+                "value",
+                "percent"
+              ]
+            },
+            "pieType": "pie",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum by (type) (increase(claude_code_active_time_seconds_total[$__range]))",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Active Time Distribution",
+          "type": "piechart"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Token rate by type over time.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "ops"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 31
+          },
+          "id": 18,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum by (type) (rate(claude_code_token_usage_tokens_total[5m]))",
+              "refId": "A",
+              "legendFormat": "{{type}}"
+            }
+          ],
+          "title": "Token Rate by Type",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Token rate by model over time.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "ops"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 31
+          },
+          "id": 19,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum by (model) (rate(claude_code_token_usage_tokens_total[5m]))",
+              "refId": "A",
+              "legendFormat": "{{model}}"
+            }
+          ],
+          "title": "Token Rate by Model",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 39
+          },
+          "id": 20,
+          "panels": [],
+          "title": "Productivity",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "User active time in the selected range.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 0,
+            "y": 40
+          },
+          "id": 21,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(increase(claude_code_active_time_seconds_total{type=\"user\"}[$__range])) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Your Time",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Claude Code active CLI time in the selected range.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 4,
+            "y": 40
+          },
+          "id": 22,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(increase(claude_code_active_time_seconds_total{type=\"cli\"}[$__range])) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "CLI Time",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "CLI time divided by user active time.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 8,
+            "y": 40
+          },
+          "id": 23,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "(sum(increase(claude_code_active_time_seconds_total{type=\"cli\"}[$__range])) or vector(0)) / clamp_min((sum(increase(claude_code_active_time_seconds_total{type=\"user\"}[$__range])) or vector(0)), 1)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Leverage Ratio",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Lines added plus removed in the selected range.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 12,
+            "y": 40
+          },
+          "id": 24,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(increase(claude_code_lines_of_code_count_total[$__range])) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Lines Changed",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Token-derived API-equivalent cost per 1,000 output tokens.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 4
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 16,
+            "y": 40
+          },
+          "id": 25,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "(((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"output\"}[$__range])) or vector(0)) * 50) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"input\"}[$__range])) or vector(0)) * 5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 6.25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"output\"}[$__range])) or vector(0)) * 25) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"output\"}[$__range])) or vector(0)) * 50) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"input\"}[$__range])) or vector(0)) * 2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 2.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"output\"}[$__range])) or vector(0)) * 10) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"input\"}[$__range])) or vector(0)) * 3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 3.75 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"output\"}[$__range])) or vector(0)) * 15) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"input\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 1.25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"output\"}[$__range])) or vector(0)) * 5) / 1000000) / clamp_min((sum(increase(claude_code_token_usage_tokens_total{type=\"output\"}[$__range])) or vector(0)), 1) * 1000",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Cost per 1K Output",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Lines changed divided by token-derived API-equivalent cost.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short",
+              "decimals": 1
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 20,
+            "y": 40
+          },
+          "id": 26,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "(sum(increase(claude_code_lines_of_code_count_total[$__range])) or vector(0)) / clamp_min((((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-fable-5\",type=\"output\"}[$__range])) or vector(0)) * 50) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"input\"}[$__range])) or vector(0)) * 5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 6.25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8\",type=\"output\"}[$__range])) or vector(0)) * 25) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"input\"}[$__range])) or vector(0)) * 10 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 12.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"cacheRead\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-opus-4-8[1m]\",type=\"output\"}[$__range])) or vector(0)) * 50) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"input\"}[$__range])) or vector(0)) * 2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 2.5 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.2 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-5\",type=\"output\"}[$__range])) or vector(0)) * 10) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"input\"}[$__range])) or vector(0)) * 3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 3.75 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.3 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-sonnet-4-6\",type=\"output\"}[$__range])) or vector(0)) * 15) / 1000000 + ((sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"input\"}[$__range])) or vector(0)) * 1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheCreation\"}[$__range])) or vector(0)) * 1.25 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"cacheRead\"}[$__range])) or vector(0)) * 0.1 + (sum(increase(claude_code_token_usage_tokens_total{model=\"claude-haiku-4-5-20251001\",type=\"output\"}[$__range])) or vector(0)) * 5) / 1000000), 0.01)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Lines per Dollar",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Lines added and removed per minute.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "lines/min"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 44
+          },
+          "id": 27,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(rate(claude_code_lines_of_code_count_total{type=\"added\"}[5m])) * 60",
+              "refId": "A",
+              "legendFormat": "added"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(rate(claude_code_lines_of_code_count_total{type=\"removed\"}[5m])) * 60",
+              "refId": "B",
+              "legendFormat": "removed"
+            }
+          ],
+          "title": "Code Modification Velocity",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Commits and pull requests per hour.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 44
+          },
+          "id": 28,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(increase(claude_code_commit_count_total[1h])) or vector(0)",
+              "refId": "A",
+              "legendFormat": "commits"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(increase(claude_code_pull_request_count_total[1h])) or vector(0)",
+              "refId": "B",
+              "legendFormat": "pull requests"
+            }
+          ],
+          "title": "Development Activity",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 52
+          },
+          "id": 29,
+          "panels": [],
+          "title": "Exporter Diagnostics",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Raw exporter-reported cost counter increase for the selected range. Diagnostic only; v3 does not use this as primary cost truth.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 0,
+            "y": 53
+          },
+          "id": 30,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range])) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Exporter Cost Counter",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Raw exporter cost counter over 12h. Compare with 24h to catch non-monotonic range behavior.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 4,
+            "y": 53
+          },
+          "id": 31,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(increase(claude_code_cost_usage_USD_total[12h])) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Exporter Cost 12h",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Raw exporter cost counter over 24h. This can be lower than 12h when the underlying series shape is unsafe for increase().",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 8,
+            "y": 53
+          },
+          "id": 32,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(increase(claude_code_cost_usage_USD_total[24h])) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Exporter Cost 24h",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Cost counter resets by model over 24h, summed into a single warning stat.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 12,
+            "y": 53
+          },
+          "id": 33,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(resets(claude_code_cost_usage_USD_total[24h])) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Counter Resets 24h",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Number of value changes across cost counter series over 24h. High values indicate high churn/cardinality.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 16,
+            "y": 53
+          },
+          "id": 34,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(changes(claude_code_cost_usage_USD_total[24h])) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Series Changes 24h",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Current number of cost counter series.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 20,
+            "y": 53
+          },
+          "id": 35,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "count(claude_code_cost_usage_USD_total) or vector(0)",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "title": "Cost Series",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Raw exporter-reported cost rate by model. Diagnostic only.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 57
+          },
+          "id": 36,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum by (model) (rate(claude_code_cost_usage_USD_total[5m])) * 3600",
+              "refId": "A",
+              "legendFormat": "{{model}}"
+            }
+          ],
+          "title": "Exporter Cost Rate",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Counter resets by model over the last hour.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 57
+          },
+          "id": 37,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum by (model) (resets(claude_code_cost_usage_USD_total[1h]))",
+              "refId": "A",
+              "legendFormat": "{{model}}"
+            }
+          ],
+          "title": "Exporter Resets by Model",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Model/type combinations that are not represented in the pricing formula.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 65
+          },
+          "id": 38,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum by (model,type) (increase(claude_code_token_usage_tokens_total{model!=\"claude-fable-5\",model!=\"claude-opus-4-8\",model!=\"claude-opus-4-8[1m]\",model!=\"claude-sonnet-5\",model!=\"claude-sonnet-4-6\",model!=\"claude-haiku-4-5-20251001\"}[$__range]))",
+              "refId": "A",
+              "instant": true,
+              "format": "table"
+            }
+          ],
+          "title": "Unpriced Token Details",
+          "type": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Raw exporter cost counter by session over 24h, useful for finding duplicate or reset-heavy sessions.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 65
+          },
+          "id": 39,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "topk(25, sum by (session_id,model,query_source) (increase(claude_code_cost_usage_USD_total[24h])))",
+              "refId": "A",
+              "instant": true,
+              "format": "table"
+            }
+          ],
+          "title": "Session Cost Diagnostics",
+          "type": "table"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 73
+          },
+          "id": 40,
+          "panels": [],
+          "title": "Tools and Logs",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki_datasource}"
+          },
+          "description": "Claude Code tool result events by tool name from Loki.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "ops"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 0,
+            "y": 74
+          },
+          "id": 41,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki_datasource}"
+              },
+              "expr": "sum by (tool_name) (count_over_time({service_name=\"claude-code\"} |= \"claude_code.tool_result\" | json | __error__=\"\" [5m]))",
+              "refId": "A"
+            }
+          ],
+          "title": "Tool Usage Rate",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki_datasource}"
+          },
+          "description": "Successful tool result events divided by total tool result events by tool name.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "percent"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 12,
+            "y": 74
+          },
+          "id": 42,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki_datasource}"
+              },
+              "expr": "100 * (sum by (tool_name) (count_over_time({service_name=\"claude-code\"} |= \"claude_code.tool_result\" | json | __error__=\"\" | success=\"true\" [15m]))) / (sum by (tool_name) (count_over_time({service_name=\"claude-code\"} |= \"claude_code.tool_result\" | json | __error__=\"\" [15m])))",
+              "refId": "A"
+            }
+          ],
+          "title": "Tool Success Rate",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki_datasource}"
+          },
+          "description": "Recent Claude Code tool events from Loki.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 81
+          },
+          "id": 43,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki_datasource}"
+              },
+              "expr": "{service_name=\"claude-code\"} |= \"claude_code.tool_result\" | json | __error__=\"\" | line_format \"{{.event_timestamp}} [{{.tool_name}}] success={{.success}} duration={{.duration_ms}}ms {{.error}}\"",
+              "refId": "A"
+            }
+          ],
+          "title": "Recent Tool Events",
+          "type": "table"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki_datasource}"
+          },
+          "description": "Recent Claude Code API errors from Loki.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 81
+          },
+          "id": 44,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "12.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki_datasource}"
+              },
+              "expr": "{service_name=\"claude-code\"} |= \"claude_code.api_error\" | json | __error__=\"\" | line_format \"{{.event_timestamp}} [{{.model}}] HTTP {{.status_code}} duration={{.duration_ms}}ms {{.error}}\"",
+              "refId": "A"
+            }
+          ],
+          "title": "Recent API Errors",
+          "type": "table"
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 42,
+      "tags": [
+        "claude-code",
+        "applications",
+        "costs",
+        "v3"
+      ],
+      "templating": {
+        "list": [
+          {
+            "current": {},
+            "hide": 0,
+            "includeAll": false,
+            "label": "Prometheus datasource",
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "refresh": 1,
+            "regex": "",
+            "type": "datasource"
+          },
+          {
+            "current": {},
+            "hide": 0,
+            "includeAll": false,
+            "label": "Loki datasource",
+            "multi": false,
+            "name": "loki_datasource",
+            "options": [],
+            "query": "loki",
+            "refresh": 1,
+            "regex": "",
+            "type": "datasource"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-24h",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "Claude Code - Unified v3",
+      "uid": "claude-code-unified-v3",
+      "version": 1,
+      "weekStart": ""
+    }
