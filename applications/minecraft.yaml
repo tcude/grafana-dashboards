@@ -426,19 +426,98 @@ data:
         },
         {
           "id": 8,
+          "type": "state-timeline",
+          "title": "Players Online",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "One row per player; a bar means they were online.",
+          "gridPos": {
+            "x": 0,
+            "y": 5,
+            "w": 24,
+            "h": 6
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "lineWidth": 0,
+                "fillOpacity": 72,
+                "spanNulls": false,
+                "insertNulls": 120000
+              },
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "1": {
+                      "text": "Online",
+                      "color": "green",
+                      "index": 0
+                    }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "transparent",
+                    "value": null
+                  }
+                ]
+              },
+              "noValue": "-"
+            },
+            "overrides": []
+          },
+          "options": {
+            "mergeValues": true,
+            "showValue": "never",
+            "rowHeight": 0.85,
+            "alignValue": "left",
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false,
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "max by (name) (mc_player_list{server=~\"$server\"})",
+              "legendFormat": "{{name}}"
+            }
+          ]
+        },
+        {
+          "id": 9,
           "type": "row",
           "title": "Performance",
           "collapsed": false,
           "gridPos": {
             "x": 0,
-            "y": 5,
+            "y": 11,
             "w": 24,
             "h": 1
           },
           "panels": []
         },
         {
-          "id": 9,
+          "id": 10,
           "type": "timeseries",
           "title": "TPS",
           "datasource": {
@@ -447,7 +526,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 6,
+            "y": 12,
             "w": 12,
             "h": 8
           },
@@ -511,7 +590,7 @@ data:
           "description": "Server ticks per second. 20 = healthy; the server skips ticks below 20."
         },
         {
-          "id": 10,
+          "id": 11,
           "type": "timeseries",
           "title": "Tick Duration (MSPT)",
           "datasource": {
@@ -520,7 +599,7 @@ data:
           },
           "gridPos": {
             "x": 12,
-            "y": 6,
+            "y": 12,
             "w": 12,
             "h": 8
           },
@@ -593,7 +672,7 @@ data:
           "description": "Time per server tick. Above 50ms the server can no longer hold 20 TPS."
         },
         {
-          "id": 11,
+          "id": 12,
           "type": "timeseries",
           "title": "Tick Time by Dimension",
           "datasource": {
@@ -602,7 +681,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 14,
+            "y": 20,
             "w": 12,
             "h": 8
           },
@@ -664,7 +743,7 @@ data:
           ]
         },
         {
-          "id": 12,
+          "id": 13,
           "type": "timeseries",
           "title": "Loaded Chunks by Dimension",
           "datasource": {
@@ -673,7 +752,7 @@ data:
           },
           "gridPos": {
             "x": 12,
-            "y": 14,
+            "y": 20,
             "w": 12,
             "h": 8
           },
@@ -734,7 +813,7 @@ data:
           ]
         },
         {
-          "id": 13,
+          "id": 14,
           "type": "timeseries",
           "title": "Entities by Type (top 10)",
           "datasource": {
@@ -743,7 +822,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 22,
+            "y": 28,
             "w": 12,
             "h": 8
           },
@@ -805,7 +884,7 @@ data:
           "description": "Only reported by the CABIN exporter build (1.2.x); empty for DJ2."
         },
         {
-          "id": 14,
+          "id": 15,
           "type": "timeseries",
           "title": "Entities by Dimension",
           "datasource": {
@@ -814,7 +893,7 @@ data:
           },
           "gridPos": {
             "x": 12,
-            "y": 22,
+            "y": 28,
             "w": 12,
             "h": 8
           },
@@ -876,20 +955,20 @@ data:
           "description": "Only reported by the CABIN exporter build (1.2.x); empty for DJ2."
         },
         {
-          "id": 15,
+          "id": 16,
           "type": "row",
           "title": "JVM",
           "collapsed": false,
           "gridPos": {
             "x": 0,
-            "y": 30,
+            "y": 36,
             "w": 24,
             "h": 1
           },
           "panels": []
         },
         {
-          "id": 16,
+          "id": 17,
           "type": "timeseries",
           "title": "Heap",
           "datasource": {
@@ -898,7 +977,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 31,
+            "y": 37,
             "w": 8,
             "h": 8
           },
@@ -970,7 +1049,7 @@ data:
           ]
         },
         {
-          "id": 17,
+          "id": 18,
           "type": "timeseries",
           "title": "GC Collections",
           "datasource": {
@@ -979,7 +1058,7 @@ data:
           },
           "gridPos": {
             "x": 8,
-            "y": 31,
+            "y": 37,
             "w": 8,
             "h": 8
           },
@@ -1041,7 +1120,7 @@ data:
           ]
         },
         {
-          "id": 18,
+          "id": 19,
           "type": "timeseries",
           "title": "Time in GC",
           "datasource": {
@@ -1050,7 +1129,7 @@ data:
           },
           "gridPos": {
             "x": 16,
-            "y": 31,
+            "y": 37,
             "w": 8,
             "h": 8
           },
@@ -1114,20 +1193,20 @@ data:
           "description": "Percentage of wall-clock time spent in garbage collection."
         },
         {
-          "id": 19,
+          "id": 20,
           "type": "row",
           "title": "Host",
           "collapsed": false,
           "gridPos": {
             "x": 0,
-            "y": 39,
+            "y": 45,
             "w": 24,
             "h": 1
           },
           "panels": []
         },
         {
-          "id": 20,
+          "id": 21,
           "type": "timeseries",
           "title": "CPU Utilization",
           "datasource": {
@@ -1136,7 +1215,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 40,
+            "y": 46,
             "w": 12,
             "h": 8
           },
@@ -1200,7 +1279,7 @@ data:
           ]
         },
         {
-          "id": 21,
+          "id": 22,
           "type": "timeseries",
           "title": "Memory",
           "datasource": {
@@ -1209,7 +1288,7 @@ data:
           },
           "gridPos": {
             "x": 12,
-            "y": 40,
+            "y": 46,
             "w": 12,
             "h": 8
           },
@@ -1281,7 +1360,7 @@ data:
           ]
         },
         {
-          "id": 22,
+          "id": 23,
           "type": "timeseries",
           "title": "Container Memory (working set)",
           "datasource": {
@@ -1290,7 +1369,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 48,
+            "y": 54,
             "w": 8,
             "h": 8
           },
@@ -1354,7 +1433,7 @@ data:
           "description": "Per-container memory from cAdvisor \u2014 MC container vs sidecars vs host total."
         },
         {
-          "id": 23,
+          "id": 24,
           "type": "timeseries",
           "title": "Root Disk Used",
           "datasource": {
@@ -1363,7 +1442,7 @@ data:
           },
           "gridPos": {
             "x": 8,
-            "y": 48,
+            "y": 54,
             "w": 8,
             "h": 8
           },
@@ -1427,7 +1506,7 @@ data:
           ]
         },
         {
-          "id": 24,
+          "id": 25,
           "type": "timeseries",
           "title": "Network",
           "datasource": {
@@ -1436,7 +1515,7 @@ data:
           },
           "gridPos": {
             "x": 16,
-            "y": 48,
+            "y": 54,
             "w": 8,
             "h": 8
           },
@@ -1508,20 +1587,20 @@ data:
           ]
         },
         {
-          "id": 25,
+          "id": 26,
           "type": "row",
           "title": "Logs & Anomalies",
           "collapsed": false,
           "gridPos": {
             "x": 0,
-            "y": 56,
+            "y": 62,
             "w": 24,
             "h": 1
           },
           "panels": []
         },
         {
-          "id": 26,
+          "id": 27,
           "type": "timeseries",
           "title": "Tick-Skip Events (Can't keep up!)",
           "datasource": {
@@ -1530,7 +1609,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 57,
+            "y": 63,
             "w": 8,
             "h": 8
           },
@@ -1592,7 +1671,7 @@ data:
           "description": "MC log lines warning the server is running behind and skipping ticks \u2014 the primary lag-anomaly signal."
         },
         {
-          "id": 27,
+          "id": 28,
           "type": "timeseries",
           "title": "Log Volume by Level",
           "datasource": {
@@ -1601,7 +1680,7 @@ data:
           },
           "gridPos": {
             "x": 8,
-            "y": 57,
+            "y": 63,
             "w": 8,
             "h": 8
           },
@@ -1662,7 +1741,7 @@ data:
           ]
         },
         {
-          "id": 28,
+          "id": 29,
           "type": "timeseries",
           "title": "Crash Report Activity",
           "datasource": {
@@ -1671,7 +1750,7 @@ data:
           },
           "gridPos": {
             "x": 16,
-            "y": 57,
+            "y": 63,
             "w": 8,
             "h": 8
           },
@@ -1733,7 +1812,7 @@ data:
           "description": "Lines ingested from new files in crash-reports/ \u2014 any activity here means the server crashed."
         },
         {
-          "id": 29,
+          "id": 30,
           "type": "logs",
           "title": "Errors & Warnings",
           "datasource": {
@@ -1742,7 +1821,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 65,
+            "y": 71,
             "w": 12,
             "h": 10
           },
@@ -1768,7 +1847,7 @@ data:
           ]
         },
         {
-          "id": 30,
+          "id": 31,
           "type": "logs",
           "title": "Server Log",
           "datasource": {
@@ -1777,7 +1856,7 @@ data:
           },
           "gridPos": {
             "x": 12,
-            "y": 65,
+            "y": 71,
             "w": 12,
             "h": 10
           },
