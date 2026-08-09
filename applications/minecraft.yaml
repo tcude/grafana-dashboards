@@ -447,8 +447,7 @@ data:
               "custom": {
                 "lineWidth": 0,
                 "fillOpacity": 72,
-                "spanNulls": false,
-                "insertNulls": 120000
+                "spanNulls": false
               },
               "mappings": [
                 {
@@ -456,8 +455,11 @@ data:
                   "options": {
                     "1": {
                       "text": "Online",
-                      "color": "green",
                       "index": 0
+                    },
+                    "0": {
+                      "text": "Offline",
+                      "index": 1
                     }
                   }
                 }
@@ -468,6 +470,10 @@ data:
                   {
                     "color": "transparent",
                     "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 1
                   }
                 ]
               },
@@ -498,7 +504,7 @@ data:
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "max by (name) (mc_player_list{server=~\"$server\"})",
+              "expr": "max by (name) (mc_player_list{server=~\"$server\"}) or (0 * max by (name) (last_over_time(mc_player_list{server=~\"$server\"}[$__range])))",
               "legendFormat": "{{name}}"
             }
           ]
