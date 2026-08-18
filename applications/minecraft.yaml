@@ -436,7 +436,7 @@ data:
           "gridPos": {
             "x": 0,
             "y": 5,
-            "w": 24,
+            "w": 18,
             "h": 6
           },
           "fieldConfig": {
@@ -1884,6 +1884,72 @@ data:
                 "type": "loki",
                 "uid": "loki"
               }
+            }
+          ]
+        },
+        {
+          "id": 32,
+          "type": "bargauge",
+          "title": "Playtime (selected range)",
+          "description": "Derived from exporter presence samples (30s scrape interval); counts time online within the dashboard time range.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "x": 18,
+            "y": 5,
+            "w": 6,
+            "h": 6
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "unit": "s",
+              "min": 0,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "displayMode": "basic",
+            "orientation": "horizontal",
+            "valueMode": "color",
+            "showUnfilled": true,
+            "sizing": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "legend": {
+              "showLegend": false
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "instant": true,
+              "range": false,
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum by (name) (count_over_time(mc_player_list{server=~\"$server\"}[$__range])) * 30",
+              "legendFormat": "{{name}}"
             }
           ]
         }
