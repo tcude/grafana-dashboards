@@ -111,6 +111,16 @@ The `grafana_ro` password lives in the Tracearr stack on media01
 then re-run the command above with the new value. Port `5433` is published from
 the `timescale` service in that stack's `docker-compose.yml`.
 
+## UniFi (unpoller) dashboards
+
+`applications/unifi-*.yaml` (Grafana folder `UniFi`) are the upstream unpoller
+Prometheus dashboards from `github.com/unpoller/dashboards` (`v2.0.0/`), fed by the
+k3s unpoller (`k3s-homelab` `manifests/workloads/unpoller`, ServiceMonitor → Prometheus
+→ remote-write → VictoriaMetrics). Each file's header comment records the upstream
+commit and the small changes made (datasource picker defaulting to VictoriaMetrics,
+because Prometheus keeps only 2d). Client DPI, Country Insights and UMBB Insights are
+left out on purpose: unpoller exports no DPI, country or cellular-modem data here.
+
 ## Related
 
 - **Deployed by:** ArgoCD Application in `manifests/argocd/apps/grafana-dashboards.yaml`
