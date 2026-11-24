@@ -1490,8 +1490,8 @@ data:
           {
             "current": {
               "selected": true,
-              "text": "VictoriaMetrics",
-              "value": "VictoriaMetrics"
+              "text": "VictoriaMetrics Claude Code",
+              "value": "vm-claude"
             },
             "includeAll": false,
             "label": "Data Source",
@@ -1499,7 +1499,7 @@ data:
             "options": [],
             "query": "prometheus",
             "refresh": 1,
-            "regex": "/VictoriaMetrics/",
+            "regex": "/^VictoriaMetrics Claude Code$/",
             "type": "datasource"
           }
         ]
