@@ -2526,7 +2526,11 @@ data:
       "templating": {
         "list": [
           {
-            "current": {},
+            "current": {
+              "selected": true,
+              "text": "VictoriaMetrics Claude Code",
+              "value": "vm-claude"
+            },
             "hide": 0,
             "includeAll": false,
             "label": "Prometheus datasource",
@@ -2535,7 +2539,7 @@ data:
             "options": [],
             "query": "prometheus",
             "refresh": 1,
-            "regex": "",
+            "regex": "/^VictoriaMetrics Claude Code$/",
             "type": "datasource"
           }
         ]
